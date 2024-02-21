@@ -1,2 +1,16 @@
 # ninja log v5
 364	426	1708528661122799564	engine	d1e49c5d3f0978e4
+11	3795	7302441967498595	CMakeFiles/engine.dir/easy_image.cc.obj	fee2b32eb52b8ae0
+3815	4091	7302441970191382	CMakeFiles/engine.dir/Line2D.cpp.obj	4bdefd83b430b7a
+4092	4766	7302441976973250	CMakeFiles/engine.dir/Point2D.cpp.obj	df3bf30878646329
+4918	7462	7302442004222661	CMakeFiles/engine.dir/l_parser.cc.obj	2b270cdb2c710414
+4767	4917	7302441978682428	CMakeFiles/engine.dir/Color.cpp.obj	e03df00ea71b3a7b
+5	1417	7302505569446390	CMakeFiles/engine.dir/engine.cc.obj	599e47c8da70f644
+23	6544	7302441994975503	CMakeFiles/engine.dir/ini_configuration.cc.obj	9e3523dbd0f13ff6
+1419	2257	7302505577783759	engine.exe	db939da69a261bc4
+5	1410	7302505799072650	CMakeFiles/engine.dir/engine.cc.obj	599e47c8da70f644
+1411	2336	7302505808274428	engine.exe	db939da69a261bc4
+6	1653	7302506618501025	CMakeFiles/engine.dir/engine.cc.obj	599e47c8da70f644
+1654	2423	7302506626141193	engine.exe	db939da69a261bc4
+7	1431	7302507357488265	CMakeFiles/engine.dir/engine.cc.obj	599e47c8da70f644
+1432	2209	7302507365215268	engine.exe	db939da69a261bc4

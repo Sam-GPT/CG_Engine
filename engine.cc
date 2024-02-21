@@ -9,6 +9,7 @@
 #include <string>
 #include <list>
 #include <cmath>
+#include <set>
 
 using Lines2D = std::list<Line2D>;
 void getXmin(Line2D& line, double& cur_min){
@@ -55,6 +56,43 @@ Lines2D mult_cords_with_SF(double& d, Lines2D lines){
     }
     return lines;
 }
+
+std::string Replace(std::string string, const LParser::LSystem2D &l_system){
+    std::string newstring = "";
+
+    for(auto i : string){
+        if(i== '+' || i == '-' || i == '[' || i == ']'){
+            newstring+=i;
+        }
+        else{
+            newstring+= l_system.get_replacement(i);
+        }
+
+    }
+
+    return newstring;
+
+}
+std::string FullString(const LParser::LSystem2D &l_system){
+    std::string cur_string = l_system.get_initiator();
+
+    for(int i = 0; i < l_system.get_nr_iterations(); i++){
+        std::string newstring = Replace(cur_string, l_system);
+        cur_string = newstring;
+    }
+    /*
+    std::ofstream outFile("output.txt");
+    outFile <<cur_string <<std::endl;
+    outFile.close();
+
+    */
+    return cur_string;
+}
+
+double degreesToRadians(double& degrees) {
+    double PI = 3.14159265358979323846;
+    return degrees * (PI / 180.0);
+}
 img::EasyImage draw2DLines(const Lines2D &lines,const int size){
     double xmin = lines.begin()->p1.x;
     double xmax = lines.begin()->p1.x;
@@ -70,15 +108,14 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size){
     double yrange = ymax - ymin;
 
 
-
     double imageX = size * (xrange/ fmax(xrange,yrange));
     double imageY = size * (yrange/ fmax(xrange,yrange));
 
-
+    std::cout << imageX <<" " << imageY<<std::endl;
     double schaalfactor = 0.95 * (imageX/xrange);
 
 
-    Lines2D newLines = (schaalfactor, lines);
+    Lines2D newLines = lines;
 
     double DCx = schaalfactor * ((xmin + xmax)/2);
     double DCy = schaalfactor * ((ymin + ymax)/2);
@@ -88,54 +125,92 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size){
 
     for(auto &line : newLines){
         line.p1.x+=dx;
-        line.p1.x= round(line.p1.x);
-        std::cout <<line.p1.x<<std::endl;
+        line.p1.x= ceil(line.p1.x);
+
         line.p2.x+=dx;
-        line.p2.x=round(line.p2.x);
-        std::cout <<line.p2.x<<std::endl;
+        line.p2.x=ceil(line.p2.x);
+
 
         line.p1.y+=dy;
-        line.p1.y=round(line.p1.y);
-        std::cout <<line.p1.y<<std::endl;
+        line.p1.y=ceil(line.p1.y);
+
         line.p2.y+=dy;
-        line.p2.y= round(line.p2.y);
-        std::cout <<line.p2.y<<std::endl;
+        line.p2.y= ceil(line.p2.y);
+
     }
 
     img::EasyImage image(imageX, imageY);
-
     for(auto &line : newLines){
+
         image.draw_line(line.p1.x, line.p1.y, line.p2.x, line.p2.y,img::Color(line.color.red*255, line.color.blue*255, line.color.green*255));
 
     }
-
     return image;
 }
 
 Lines2D drawLSystem(const LParser::LSystem2D &l_system){
     Lines2D lines;
+
+    double cur_angle = l_system.get_starting_angle();
+
+    double angle = l_system.get_angle();
+
+    std::string strings = FullString(l_system);
+
+    std::set<char> alfabet = l_system.get_alphabet();
+
+    Point2D cur_position;
+    cur_position.x = 0;
+    cur_position.y = 0;
+
+
+    for(auto& i : strings){
+        if(alfabet.find(i)!= alfabet.end() && l_system.draw(i)){
+            Point2D new_position;
+            new_position.x = cur_position.x + cos(degreesToRadians(cur_angle));
+            new_position.y = cur_position.y + sin(degreesToRadians(cur_angle));
+
+            Line2D newLine;
+            newLine.p1 = cur_position;
+            newLine.p2 = new_position;
+            newLine.color.red = 0.2;
+            newLine.color.green = 0.1;
+            newLine.color.blue = 0.5;
+
+            lines.push_back(newLine);
+            cur_position.x = new_position.x;
+            cur_position.y = new_position.y;
+
+
+        }
+        else if(i == '+'){
+            cur_angle+= angle;
+        }
+        else if(i == '-'){
+            cur_angle-=angle;
+        }
+        else{
+            continue;
+        }
+    }
+
+
+    return lines;
+
+
+
 }
 
 img::EasyImage generate_image(const ini::Configuration &configuration)
 {
-    Point2D p1;
-    p1.x = -100;
-    p1.y = -110;
 
-    Point2D p2;
-    p2.x = 20;
-    p2.y = 50;
+    LParser::LSystem2D l_system;
+    std::ifstream input_stream(configuration["2DLSystem"]["inputfile"].as_string_or_die());
+    input_stream >> l_system;
 
-    Line2D l1;
-    l1.p1 = p1;
-    l1.p2 = p2;
-    l1.color.red = 0.2;
-    l1.color.green = 0.1;
-    l1.color.blue = 0.5;
 
-    Lines2D lines;
-    lines.push_back(l1);
-    return draw2DLines(lines, 500);
+
+    return draw2DLines(drawLSystem(l_system), configuration["General"]["size"].as_int_or_die());
 //    return img::EasyImage(100,100);
 }
 
