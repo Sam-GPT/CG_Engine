@@ -10,6 +10,7 @@
 #include <list>
 #include <cmath>
 #include <set>
+#include <stack>
 
 using Lines2D = std::list<Line2D>;
 void getXmin(Line2D& line, double& cur_min){
@@ -88,7 +89,7 @@ double degreesToRadians(double& degrees) {
     return degrees * (PI / 180.0);
 }
 
-img::EasyImage draw2DLines(const Lines2D &lines,const int size){
+img::EasyImage draw2DLines(const Lines2D &lines,const int size, const ini::Configuration &configuration){
     double xmin = lines.begin()->p1.x;
     double xmax = lines.begin()->p1.x;
     double ymin = lines.begin()->p1.y;
@@ -106,7 +107,7 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size){
     double imageX = size * (xrange/ fmax(xrange,yrange));
     double imageY = size * (yrange/ fmax(xrange,yrange));
 
-    std::cout << imageX <<" " << imageY<<std::endl;
+
     double schaalfactor = 0.95 * (imageX/xrange);
 
 
@@ -139,9 +140,12 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size){
     }
 
     img::EasyImage image(imageX, imageY);
+    std::vector<double> bgcolor = configuration["General"]["backgroundcolor"];
+    image.clear(img::Color(bgcolor[0]*255, bgcolor[1]*255, bgcolor[2]*255));
+    std::vector<double> color = configuration["2DLSystem"]["color"].as_double_tuple_or_die();
     for(auto &line : newLines){
 
-        image.draw_line(line.p1.x, line.p1.y, line.p2.x, line.p2.y,img::Color(line.color.red*255, line.color.blue*255, line.color.green*255));
+        image.draw_line(line.p1.x, line.p1.y, line.p2.x, line.p2.y,img::Color(color[0]*255, color[1]*255, color[2]*255));
 
     }
     return image;
@@ -149,6 +153,7 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size){
 
 Lines2D drawLSystem(const LParser::LSystem2D &l_system){
     Lines2D lines;
+    std::stack<std::pair<Point2D, double>> myStack;
 
     double cur_angle = l_system.get_starting_angle();
 
@@ -190,8 +195,18 @@ Lines2D drawLSystem(const LParser::LSystem2D &l_system){
         else if(i == '-'){
             cur_angle-=angle;
         }
+        else if(i == '('){
+            std::pair<Point2D, double> topush = {cur_position, cur_angle};
+            myStack.push(topush);
+        }
         else{
-            continue;
+            std::pair<Point2D, double> poped = myStack.top();
+            myStack.pop();
+
+            cur_position.x = poped.first.x;
+            cur_position.y = poped.first.y;
+
+            cur_angle = poped.second;
         }
     }
 
@@ -211,7 +226,7 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
 
 
 
-    return draw2DLines(drawLSystem(l_system), configuration["General"]["size"].as_int_or_die());
+    return draw2DLines(drawLSystem(l_system), configuration["General"]["size"].as_int_or_die(), configuration);
 //    return img::EasyImage(100,100);
 }
 
