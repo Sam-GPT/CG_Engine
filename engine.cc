@@ -47,21 +47,20 @@ void getYmax(Line2D& line, double& cur_max){
         cur_max= line.p2.y;
     }
 }
-Lines2D mult_cords_with_SF(double& d, Lines2D lines){
-    for(auto line : lines){
+void mult_cords_with_SF(double& d, Lines2D& lines){
+    for(auto& line : lines){
         line.p1.x *=d;
         line.p1.y *= d;
         line.p2.x *=d;
         line.p2.y *= d;
     }
-    return lines;
 }
 
-std::string Replace(std::string string, const LParser::LSystem2D &l_system){
+std::string Replace(std::string& string, const LParser::LSystem2D &l_system){
     std::string newstring = "";
 
     for(auto i : string){
-        if(i== '+' || i == '-' || i == '[' || i == ']'){
+        if(i== '+' || i == '-' || i == '(' || i == ')'){
             newstring+=i;
         }
         else{
@@ -80,12 +79,7 @@ std::string FullString(const LParser::LSystem2D &l_system){
         std::string newstring = Replace(cur_string, l_system);
         cur_string = newstring;
     }
-    /*
-    std::ofstream outFile("output.txt");
-    outFile <<cur_string <<std::endl;
-    outFile.close();
 
-    */
     return cur_string;
 }
 
@@ -93,6 +87,7 @@ double degreesToRadians(double& degrees) {
     double PI = 3.14159265358979323846;
     return degrees * (PI / 180.0);
 }
+
 img::EasyImage draw2DLines(const Lines2D &lines,const int size){
     double xmin = lines.begin()->p1.x;
     double xmax = lines.begin()->p1.x;
@@ -117,11 +112,15 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size){
 
     Lines2D newLines = lines;
 
+    mult_cords_with_SF(schaalfactor, newLines);
+
     double DCx = schaalfactor * ((xmin + xmax)/2);
     double DCy = schaalfactor * ((ymin + ymax)/2);
 
     double dx = (imageX/2) - DCx;
     double dy = (imageY/2) - DCy;
+
+
 
     for(auto &line : newLines){
         line.p1.x+=dx;
@@ -177,9 +176,11 @@ Lines2D drawLSystem(const LParser::LSystem2D &l_system){
             newLine.color.green = 0.1;
             newLine.color.blue = 0.5;
 
-            lines.push_back(newLine);
+
             cur_position.x = new_position.x;
             cur_position.y = new_position.y;
+            lines.push_back(newLine);
+
 
 
         }
