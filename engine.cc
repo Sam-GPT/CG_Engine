@@ -13,7 +13,7 @@
 #include <stack>
 
 using Lines2D = std::list<Line2D>;
-void getXmin(Line2D& line, double& cur_min){
+void getXmin(const Line2D& line, double& cur_min){
     if(line.p1.x < cur_min){
         cur_min = line.p1.x;
     }
@@ -22,7 +22,7 @@ void getXmin(Line2D& line, double& cur_min){
     }
 }
 
-void getXmax(Line2D& line, double& cur_max){
+void getXmax(const Line2D& line, double& cur_max){
     if(line.p1.x > cur_max){
         cur_max = line.p1.x;
     }
@@ -31,7 +31,7 @@ void getXmax(Line2D& line, double& cur_max){
     }
 }
 
-void getYmin(Line2D& line, double& cur_min){
+void getYmin(const Line2D& line, double& cur_min){
     if(line.p1.y < cur_min){
         cur_min = line.p1.y;
     }
@@ -40,7 +40,7 @@ void getYmin(Line2D& line, double& cur_min){
     }
 }
 
-void getYmax(Line2D& line, double& cur_max){
+void getYmax(const Line2D& line, double& cur_max){
     if(line.p1.y > cur_max){
         cur_max = line.p1.y;
     }
@@ -60,7 +60,7 @@ void mult_cords_with_SF(double& d, Lines2D& lines){
 std::string Replace(std::string& string, const LParser::LSystem2D &l_system){
     std::string newstring = "";
 
-    for(auto i : string){
+    for(auto& i : string){
         if(i== '+' || i == '-' || i == '(' || i == ')'){
             newstring+=i;
         }
@@ -94,7 +94,7 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size, const ini::Confi
     double xmax = lines.begin()->p1.x;
     double ymin = lines.begin()->p1.y;
     double ymax = lines.begin()->p1.y;
-    for(auto line : lines){
+    for(auto& line : lines){
         getXmin(line, xmin);
         getXmax(line, xmax);
         getYmin(line, ymin);
