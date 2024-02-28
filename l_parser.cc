@@ -23,6 +23,9 @@
 #include <iomanip>
 #include <cctype>
 #include <sstream>
+#include <unordered_map>
+#include <random>
+#include <chrono>
 
 
 
@@ -365,18 +368,70 @@ namespace
 			parser.skip_comments_and_whitespace();
 			parser.assertChars("->");
 			parser.skip_comments_and_whitespace();
-			std::string rule = parser.readQuotedString();
-			if (!isValidRule(alphabet, rule, parse2D))
-				throw LParser::ParserException(std::string("Invalid rule specification for entry '") + alphabet_char + "' in rule specification", parser.getLine(), parser.getCol());
-			rules[alphabet_char] = rule;
-			parser.skip_comments_and_whitespace();
-			c = parser.getChar();
-			if (c == '}')
-				break;
-			else if (c != ',')
-				throw LParser::ParserException("Expected ','", parser.getLine(), parser.getCol());
-			parser.skip_comments_and_whitespace();
-			c = parser.getChar();
+
+            std::string temprule = parser.readQuotedString();
+
+            if(temprule == "{"){
+
+                double percent = 1;
+                double tempnum = 0;
+                std::unordered_map<double, std::string> ruless= {};
+                parser.skip_comments_and_whitespace();
+                while(percent > 0){
+                    tempnum = parser.readDouble();
+                    percent-= tempnum;
+                    parser.skip_comments_and_whitespace();
+                    ruless[tempnum] = parser.readQuotedString();
+                    parser.skip_comments_and_whitespace();
+
+                }
+
+                double totalChance = 0.0;
+                for (const auto& entry : ruless) {
+                    totalChance += entry.first;
+                }
+
+                // Generate a random number between 0 and totalChance
+                std::random_device rd;
+                std::mt19937 gen(std::chrono::steady_clock::now().time_since_epoch().count());
+                std::uniform_real_distribution<double> dis(0.0, totalChance);
+                double randomNum = dis(gen);
+                std::cout<<randomNum<<std::endl;
+
+
+                // Iterate through the map and accumulate chances until reaching the random number
+                double accumulatedChance = 0.0;
+                for (const auto& entry : ruless) {
+                    accumulatedChance += entry.first;
+                    if (randomNum < accumulatedChance) {
+                         // Return the selected element's string
+                        rules[alphabet_char] = entry.second;
+                        std::cout<<entry.second<<std::endl;
+                        parser.skip_comments_and_whitespace();
+                        break;
+
+                    }
+                }
+
+
+            }
+            else{
+                std::string rule = temprule;
+                if (!isValidRule(alphabet, rule, parse2D))
+                    throw LParser::ParserException(std::string("Invalid rule specification for entry '") + alphabet_char + "' in rule specification", parser.getLine(), parser.getCol());
+                rules[alphabet_char] = rule;
+                parser.skip_comments_and_whitespace();
+
+            }
+            c = parser.getChar();
+            if (c == '}')
+                break;
+            else if (c != ',')
+                throw LParser::ParserException("Expected ','", parser.getLine(), parser.getCol());
+            parser.skip_comments_and_whitespace();
+            c = parser.getChar();
+
+
 		}
 	}
 	std::string parse_initiator(std::set<char> const& alphabet, stream_parser& parser, bool parse2D)
