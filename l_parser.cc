@@ -373,21 +373,21 @@ namespace
 
             if(temprule == "{"){
 
-                double percent = 1;
-                double tempnum = 0;
-                std::unordered_map<double, std::string> ruless= {};
+                double tot_percent = 1;
+                double chance = 0;
+                std::unordered_map<double, std::string> s_rules= {};
                 parser.skip_comments_and_whitespace();
-                while(percent > 0){
-                    tempnum = parser.readDouble();
-                    percent-= tempnum;
+                while(tot_percent > 0){
+                    chance = parser.readDouble();
+                    tot_percent-= chance;
                     parser.skip_comments_and_whitespace();
-                    ruless[tempnum] = parser.readQuotedString();
+                    s_rules[chance] = parser.readQuotedString();
                     parser.skip_comments_and_whitespace();
 
                 }
 
                 double totalChance = 0.0;
-                for (const auto& entry : ruless) {
+                for (const auto& entry : s_rules) {
                     totalChance += entry.first;
                 }
 
@@ -396,17 +396,15 @@ namespace
                 std::mt19937 gen(std::chrono::steady_clock::now().time_since_epoch().count());
                 std::uniform_real_distribution<double> dis(0.0, totalChance);
                 double randomNum = dis(gen);
-                std::cout<<randomNum<<std::endl;
 
 
                 // Iterate through the map and accumulate chances until reaching the random number
                 double accumulatedChance = 0.0;
-                for (const auto& entry : ruless) {
+                for (const auto& entry : s_rules) {
                     accumulatedChance += entry.first;
                     if (randomNum < accumulatedChance) {
                          // Return the selected element's string
                         rules[alphabet_char] = entry.second;
-                        std::cout<<entry.second<<std::endl;
                         parser.skip_comments_and_whitespace();
                         break;
 
