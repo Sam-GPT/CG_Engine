@@ -11,6 +11,9 @@
 #include <cmath>
 #include <set>
 #include <stack>
+#include "vector3d.h"
+#include "Figure.h"
+#include <string>
 
 using Lines2D = std::list<Line2D>;
 void getXmin(const Line2D& line, double& cur_min){
@@ -217,17 +220,173 @@ Lines2D drawLSystem(const LParser::LSystem2D &l_system){
 
 }
 
+
+
+Matrix scaleFigure(const double scale){
+    Matrix m;
+
+    for(int i = 0; i<3 ; i++){
+        m(i, i) = scale;
+    }
+    return m;
+}
+
+Matrix rotateX(const double angle){
+    Matrix m;
+
+    m(1,1) = cos(angle);
+    m(1,2) = sin(angle);
+    m(2,1) = -1 * sin(angle);
+    m(2,2) = cos(angle);
+
+    return m;
+}
+
+Matrix rotateY(const double angle){
+    Matrix m;
+
+    m(0,0) = cos(angle);
+    m(0, 2) = -1 * sin(angle);
+    m(2,0) = sin(angle);
+    m(2,2) = cos(angle);
+
+    return m;
+}
+
+Matrix rotateZ(const double angle){
+    Matrix m;
+
+    m(0,0) = cos(angle);
+    m(0,1) = sin(angle);
+    m(1,0) = -1 * sin(angle);
+    m(1,1) = cos(angle);
+
+    return m;
+}
+
+Matrix translate(const Vector3D &vector){
+    Matrix m;
+    m(3,0) = vector.x;
+    m(3,1) = vector.y;
+    m(3,2) = vector.z;
+
+    return m;
+}
+
+void applyTransformation(Figure &fig, const Matrix &m){
+    for(auto &point : fig.points){
+        point*=m;
+    }
+
+
+}
+
+Point2D doProjection(const Vector3D &point,const double d){
+    Point2D punt{};
+
+    punt.x = (d*point.x)/-point.z;
+    punt.y = (d*point.y)/-point.z;
+
+    return punt;
+}
+
+Lines2D doProjection(const Figures3D & figs){
+    Lines2D lines;
+
+    int begin;
+    int end;
+
+    for(auto &fig : figs){
+        for(auto &vlak : fig.faces){
+            begin = vlak.point_indexes[0];
+            end = vlak.point_indexes[1];
+        }
+        Line2D newline{};
+        newline.p1 = doProjection(fig.points[begin],1);
+        newline.p2 = doProjection(fig.points[end], 1);
+
+        lines.push_back(newline);
+    }
+    return lines;
+}
+
+void toPolar(const Vector3D &point,double &theta,double &phi,double &r){
+    r = sqrt(pow(point.x, 2)+ pow(point.y, 2)+ pow(point.z, 2));
+    theta = atan2(point.y, point.x);
+    phi = acos(point.z/r);
+}
+
+Matrix eyePointTrans(const Vector3D &eyepoint){
+    double rpoint;
+    double theta;
+    double phi;
+
+    toPolar(eyepoint, theta, phi, rpoint);
+
+    Matrix m;
+    m(0,0) = -1 * sin(theta);
+    m(0,1) = -1* cos(theta)* cos(phi);
+    m(0,2) = cos(theta)*sin(phi);
+
+    m(1,0) = cos(theta);
+    m(1,1) = -1* sin(theta)* cos(phi);
+    m(1,2) = sin(theta)*sin(phi);
+
+    m(2,1) = sin(phi);
+    m(2,2) = cos(phi);
+
+    m(3,2) = -rpoint;
+
+    return m;
+
+}
+
 img::EasyImage generate_image(const ini::Configuration &configuration)
 {
 
-    LParser::LSystem2D l_system;
-    std::ifstream input_stream(configuration["2DLSystem"]["inputfile"].as_string_or_die());
-    input_stream >> l_system;
+    if(configuration["General"]["type"].as_string_or_die() == "2DLSystem"){
+        LParser::LSystem2D l_system;
+        std::ifstream input_stream(configuration["2DLSystem"]["inputfile"].as_string_or_die());
+        input_stream >> l_system;
+        return draw2DLines(drawLSystem(l_system), configuration["General"]["size"].as_int_or_die(), configuration);
+    }
 
 
+    else if(configuration["General"]["type"].as_string_or_die() == "Wireframe"){
+        Figure figuur{};
+        std::vector<double> clr = configuration["Figure0"]["color"].as_double_tuple_or_die();
 
-    return draw2DLines(drawLSystem(l_system), configuration["General"]["size"].as_int_or_die(), configuration);
-//    return img::EasyImage(100,100);
+        figuur.color.red = clr[0];
+        figuur.color.green = clr[1];
+        figuur.color.blue = clr[2];
+
+        for(int i =0; i< configuration["Figure0"]["nrLines"].as_int_or_die(); i++ ){
+            Face face{};
+            std::string linenum = "line"+ std::to_string(i);
+            std::vector<double> vec = configuration["Figure0"][linenum].as_double_tuple_or_die();
+
+            for(auto &num : vec){
+                face.point_indexes.push_back(num);
+            }
+            figuur.faces.push_back(face);
+        }
+
+        for(int i = 0; i < configuration["Figure0"]["nrPoints"].as_int_or_die(); i++){
+            std::string pointnum = "point"+ std::to_string(i);
+            Vector3D point{};
+
+            std::vector<double> vec = configuration["Figure0"][pointnum].as_double_tuple_or_die();
+            point.x = vec[0];
+            point.y = vec[1];
+            point.z = vec[2];
+
+            figuur.points.push_back(point);
+
+        }
+
+    }
+
+//
 }
 
 int main(int argc, char const* argv[])
