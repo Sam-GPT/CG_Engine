@@ -145,10 +145,10 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size, const ini::Confi
     img::EasyImage image(imageX, imageY);
     std::vector<double> bgcolor = configuration["General"]["backgroundcolor"];
     image.clear(img::Color(bgcolor[0]*255, bgcolor[1]*255, bgcolor[2]*255));
-    std::vector<double> color = configuration["2DLSystem"]["color"].as_double_tuple_or_die();
+
     for(auto &line : newLines){
 
-        image.draw_line(line.p1.x, line.p1.y, line.p2.x, line.p2.y,img::Color(color[0]*255, color[1]*255, color[2]*255));
+        image.draw_line(line.p1.x, line.p1.y, line.p2.x, line.p2.y,img::Color((line.color.red)*255,(line.color.green)*255, (line.color.blue)*255));
 
     }
     return image;
@@ -180,10 +180,6 @@ Lines2D drawLSystem(const LParser::LSystem2D &l_system){
             Line2D newLine;
             newLine.p1 = cur_position;
             newLine.p2 = new_position;
-            newLine.color.red = 0.2;
-            newLine.color.green = 0.1;
-            newLine.color.blue = 0.5;
-
 
             cur_position.x = new_position.x;
             cur_position.y = new_position.y;
@@ -225,13 +221,35 @@ Lines2D drawLSystem(const LParser::LSystem2D &l_system){
 Matrix scaleFigure(const double scale){
     Matrix m;
 
-    for(int i = 0; i<3 ; i++){
-        m(i, i) = scale;
-    }
+    m(1,1) = scale;
+    m(2,2) = scale;
+    m(3,3) = scale;
     return m;
 }
 
 Matrix rotateX(const double angle){
+    Matrix m;
+
+    m(2,2) = cos(angle);
+    m(2,3) = sin(angle);
+    m(3,2) = -1 * sin(angle);
+    m(3,3) = cos(angle);
+
+    return m;
+}
+
+Matrix rotateY(const double angle){
+    Matrix m;
+
+    m(1,1) = cos(angle);
+    m(1, 3) = -1 * sin(angle);
+    m(3,1) = sin(angle);
+    m(3,3) = cos(angle);
+
+    return m;
+}
+
+Matrix rotateZ(const double angle){
     Matrix m;
 
     m(1,1) = cos(angle);
@@ -242,33 +260,11 @@ Matrix rotateX(const double angle){
     return m;
 }
 
-Matrix rotateY(const double angle){
-    Matrix m;
-
-    m(0,0) = cos(angle);
-    m(0, 2) = -1 * sin(angle);
-    m(2,0) = sin(angle);
-    m(2,2) = cos(angle);
-
-    return m;
-}
-
-Matrix rotateZ(const double angle){
-    Matrix m;
-
-    m(0,0) = cos(angle);
-    m(0,1) = sin(angle);
-    m(1,0) = -1 * sin(angle);
-    m(1,1) = cos(angle);
-
-    return m;
-}
-
 Matrix translate(const Vector3D &vector){
     Matrix m;
-    m(3,0) = vector.x;
-    m(3,1) = vector.y;
-    m(3,2) = vector.z;
+    m(4,1) = vector.x;
+    m(4,2) = vector.y;
+    m(4,3) = vector.z;
 
     return m;
 }
@@ -290,25 +286,57 @@ Point2D doProjection(const Vector3D &point,const double d){
     return punt;
 }
 
-Lines2D doProjection(const Figures3D & figs){
+Lines2D doProjection(const Figures3D &figs) {
     Lines2D lines;
+    int fig_num = 0;
+    for (const auto &fig : figs) {
+        std::string fignum = "Figure"+ std::to_string(fig_num);
+        for (const auto &vlak : fig.faces) {
+            for (size_t i = 0; i < vlak.point_indexes.size() - 1; ++i) {
+                int begin = vlak.point_indexes[i];
+                int end = vlak.point_indexes[i + 1];
 
-    int begin;
-    int end;
 
-    for(auto &fig : figs){
-        for(auto &vlak : fig.faces){
-            begin = vlak.point_indexes[0];
-            end = vlak.point_indexes[1];
+                Line2D newline{};
+                newline.p1 = doProjection(fig.points[begin], 1);
+                newline.p2 = doProjection(fig.points[end], 1);
+
+                newline.color.red = fig.color.red;
+                newline.color.green = fig.color.green;
+                newline.color.blue = fig.color.blue;
+
+
+                lines.push_back(newline);
+            }
+
+
+            int begin = vlak.point_indexes.back();
+            int end = vlak.point_indexes.front();
+
+
+            Line2D newline{};
+            newline.p1 = doProjection(fig.points[begin], 1);
+            newline.p2 = doProjection(fig.points[end], 1);
+
+            newline.color.red = fig.color.red;
+            newline.color.green = fig.color.green;
+            newline.color.blue = fig.color.blue;
+
+
+
+
+            lines.push_back(newline);
+
+
+
         }
-        Line2D newline{};
-        newline.p1 = doProjection(fig.points[begin],1);
-        newline.p2 = doProjection(fig.points[end], 1);
+        fig_num++;
 
-        lines.push_back(newline);
     }
+
     return lines;
 }
+
 
 void toPolar(const Vector3D &point,double &theta,double &phi,double &r){
     r = sqrt(pow(point.x, 2)+ pow(point.y, 2)+ pow(point.z, 2));
@@ -324,18 +352,18 @@ Matrix eyePointTrans(const Vector3D &eyepoint){
     toPolar(eyepoint, theta, phi, rpoint);
 
     Matrix m;
-    m(0,0) = -1 * sin(theta);
-    m(0,1) = -1* cos(theta)* cos(phi);
-    m(0,2) = cos(theta)*sin(phi);
+    m(1,1) = -1 * sin(theta);
+    m(1,2) = -1* cos(theta)* cos(phi);
+    m(1,3) = cos(theta)*sin(phi);
 
-    m(1,0) = cos(theta);
-    m(1,1) = -1* sin(theta)* cos(phi);
-    m(1,2) = sin(theta)*sin(phi);
+    m(2,1) = cos(theta);
+    m(2,2) = -1* sin(theta)* cos(phi);
+    m(2,3) = sin(theta)*sin(phi);
 
-    m(2,1) = sin(phi);
-    m(2,2) = cos(phi);
+    m(3,2) = sin(phi);
+    m(3,3) = cos(phi);
 
-    m(3,2) = -rpoint;
+    m(4,3) = -rpoint;
 
     return m;
 
@@ -352,41 +380,80 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
     }
 
 
+
     else if(configuration["General"]["type"].as_string_or_die() == "Wireframe"){
-        Figure figuur{};
-        std::vector<double> clr = configuration["Figure0"]["color"].as_double_tuple_or_die();
+        Figures3D  figures;
+        std::vector<double> eye_point = configuration["General"]["eye"].as_double_tuple_or_die();
+        Vector3D v_point = Vector3D::point(eye_point[0], eye_point[1], eye_point[2]);
 
-        figuur.color.red = clr[0];
-        figuur.color.green = clr[1];
-        figuur.color.blue = clr[2];
 
-        for(int i =0; i< configuration["Figure0"]["nrLines"].as_int_or_die(); i++ ){
-            Face face{};
-            std::string linenum = "line"+ std::to_string(i);
-            std::vector<double> vec = configuration["Figure0"][linenum].as_double_tuple_or_die();
 
-            for(auto &num : vec){
-                face.point_indexes.push_back(num);
+        for(int i = 0; i <configuration["General"]["nrFigures"].as_int_or_die(); i++ ){
+            Figure figuur{};
+            std::string fignum = "Figure"+ std::to_string(i);
+            std::vector<double> clr = configuration[fignum]["color"].as_double_tuple_or_die();
+            figuur.color.red = clr[0];
+            figuur.color.green = clr[1];
+            figuur.color.blue = clr[2];
+
+
+            for(int j =0; j< configuration[fignum]["nrLines"].as_int_or_die(); j++ ){
+                Face face{};
+                std::string linenum = "line"+ std::to_string(j);
+                std::vector<int> vec = configuration[fignum][linenum].as_int_tuple_or_die();
+
+                for(auto &num : vec){
+                    face.point_indexes.push_back(num);
+                }
+                figuur.faces.push_back(face);
             }
-            figuur.faces.push_back(face);
+
+            for(int k = 0; k < configuration[fignum]["nrPoints"].as_int_or_die(); k++){
+                std::string pointnum = "point"+ std::to_string(k);
+
+
+                std::vector<double> vec = configuration[fignum][pointnum].as_double_tuple_or_die();
+                Vector3D point = Vector3D::point(vec[0], vec[1], vec[2]);
+
+                figuur.points.push_back(point);
+
+            }
+
+            Matrix scale_matrix = scaleFigure(configuration[fignum]["scale"].as_double_or_die());
+            applyTransformation(figuur, scale_matrix);
+
+
+            Matrix rotateX_matrix = rotateX(configuration[fignum]["rotateX"].as_double_or_die());
+            applyTransformation(figuur, rotateX_matrix);
+
+            Matrix rotateY_matrix = rotateY(configuration[fignum]["rotateY"].as_double_or_die());
+            applyTransformation(figuur, rotateY_matrix);
+
+            Matrix rotateZ_matrix = rotateZ(configuration[fignum]["rotateZ"].as_double_or_die());
+            applyTransformation(figuur, rotateZ_matrix);
+
+            std::vector<double> cen_ter = configuration[fignum]["center"].as_double_tuple_or_die();
+
+            Vector3D center_vector = Vector3D::vector(cen_ter[0], cen_ter[1], cen_ter[2]);
+
+            Matrix translate_matrix = translate(center_vector);
+            applyTransformation(figuur, translate_matrix);
+
+
+            Matrix eyePointTrans_matrix = eyePointTrans(v_point);
+            applyTransformation(figuur, eyePointTrans_matrix);
+
+
+            figures.push_back(figuur);
+
         }
 
-        for(int i = 0; i < configuration["Figure0"]["nrPoints"].as_int_or_die(); i++){
-            std::string pointnum = "point"+ std::to_string(i);
-            Vector3D point{};
+        return draw2DLines(doProjection(figures), configuration["General"]["size"].as_int_or_die(), configuration);
 
-            std::vector<double> vec = configuration["Figure0"][pointnum].as_double_tuple_or_die();
-            point.x = vec[0];
-            point.y = vec[1];
-            point.z = vec[2];
-
-            figuur.points.push_back(point);
-
-        }
 
     }
 
-//
+
 }
 
 int main(int argc, char const* argv[])
