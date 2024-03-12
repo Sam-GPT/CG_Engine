@@ -154,7 +154,7 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size, const ini::Confi
     return image;
 }
 
-Lines2D drawLSystem(const LParser::LSystem2D &l_system){
+Lines2D drawLSystem(const LParser::LSystem2D &l_system , const ini::Configuration &configuration){
     Lines2D lines;
     std::stack<std::pair<Point2D, double>> myStack;
 
@@ -180,6 +180,12 @@ Lines2D drawLSystem(const LParser::LSystem2D &l_system){
             Line2D newLine;
             newLine.p1 = cur_position;
             newLine.p2 = new_position;
+
+            std::vector<double>vec_color =  configuration["2DLSystem"]["color"].as_double_tuple_or_die();
+
+            newLine.color.red = vec_color[0];
+            newLine.color.green = vec_color[1];
+            newLine.color.blue = vec_color[2];
 
             cur_position.x = new_position.x;
             cur_position.y = new_position.y;
@@ -212,10 +218,7 @@ Lines2D drawLSystem(const LParser::LSystem2D &l_system){
 
     return lines;
 
-
-
 }
-
 
 
 Matrix scaleFigure(const double scale){
@@ -376,7 +379,7 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
         LParser::LSystem2D l_system;
         std::ifstream input_stream(configuration["2DLSystem"]["inputfile"].as_string_or_die());
         input_stream >> l_system;
-        return draw2DLines(drawLSystem(l_system), configuration["General"]["size"].as_int_or_die(), configuration);
+        return draw2DLines(drawLSystem(l_system, configuration), configuration["General"]["size"].as_int_or_die(), configuration);
     }
 
 
