@@ -794,30 +794,32 @@ Figure createSphere(const int n, Color kleur){
     std::vector<Vector3D> new_points;
 
     for(int i = 0; i < n; i++){
-        std::vector<Face> temp_faces = new_faces; // Temporarily store new faces
-        new_faces.clear();
+        std::vector<Face> temp_faces = i_faces;
+        i_faces.clear();
+        std::vector<Vector3D> temp_points = i_points;
+        i_points.clear();
         for(auto &face : temp_faces){
-            Vector3D p1 = i_points[face.point_indexes[0]];
-            Vector3D p2 = i_points[face.point_indexes[1]];
-            Vector3D p3 = i_points[face.point_indexes[2]];
+            Vector3D p1 = temp_points[face.point_indexes[0]];
+            Vector3D p2 = temp_points[face.point_indexes[1]];
+            Vector3D p3 = temp_points[face.point_indexes[2]];
 
             Vector3D p4 = (p1 + p2)/2;
             Vector3D p5 = (p2 + p3)/2;
             Vector3D p6 = (p1 + p3)/2;
 
 
-            int index1 = new_points.size();
-            new_points.push_back(p1);
-            int index2 = new_points.size();
-            new_points.push_back(p2);
-            int index3 = new_points.size();
-            new_points.push_back(p3);
-            int index4 = new_points.size();
-            new_points.push_back(p4);
-            int index5 = new_points.size();
-            new_points.push_back(p5);
-            int index6 = new_points.size();
-            new_points.push_back(p6);
+            int index1 = i_points.size();
+            i_points.push_back(p1);
+            int index2 = i_points.size();
+            i_points.push_back(p2);
+            int index3 = i_points.size();
+            i_points.push_back(p3);
+            int index4 = i_points.size();
+            i_points.push_back(p4);
+            int index5 = i_points.size();
+            i_points.push_back(p5);
+            int index6 = i_points.size();
+            i_points.push_back(p6);
 
             Face new_face1;
             new_face1.point_indexes.push_back(index1);
@@ -839,15 +841,15 @@ Figure createSphere(const int n, Color kleur){
             new_face4.point_indexes.push_back(index5);
             new_face4.point_indexes.push_back(index6);
 
-            new_faces.push_back(new_face1);
-            new_faces.push_back(new_face2);
-            new_faces.push_back(new_face3);
-            new_faces.push_back(new_face4);
+            i_faces.push_back(new_face1);
+            i_faces.push_back(new_face2);
+            i_faces.push_back(new_face3);
+            i_faces.push_back(new_face4);
 
 
         }
-        faces = new_faces;
-        points = new_points;
+        faces = i_faces;
+        points = i_points;
     }
 
     for(auto &point : points){
