@@ -14,6 +14,8 @@
 #include "vector3d.h"
 #include "Figure.h"
 #include <string>
+#define PI 3.14159265358979323846
+
 
 using Lines2D = std::list<Line2D>;
 void getXmin(const Line2D& line, double& cur_min){
@@ -88,7 +90,6 @@ std::string FullString(const LParser::LSystem2D &l_system){
 }
 
 double degreesToRadians(double& degrees) {
-    double PI = 3.14159265358979323846;
     return degrees * (PI / 180.0);
 }
 
@@ -388,27 +389,27 @@ Figure createTetrahedron(Color kleur){
     points.push_back(p4);
 
     Face face1;
-    face1.point_indexes.push_back(1);
-    face1.point_indexes.push_back(3);
+    face1.point_indexes.push_back(0);
     face1.point_indexes.push_back(2);
+    face1.point_indexes.push_back(1);
 
     Face face2;
 
+    face2.point_indexes.push_back(1);
     face2.point_indexes.push_back(2);
     face2.point_indexes.push_back(3);
-    face2.point_indexes.push_back(4);
 
     Face face3;
 
+    face3.point_indexes.push_back(0);
     face3.point_indexes.push_back(1);
-    face3.point_indexes.push_back(2);
-    face3.point_indexes.push_back(4);
+    face3.point_indexes.push_back(3);
 
     Face face4;
 
-    face4.point_indexes.push_back(1);
+    face4.point_indexes.push_back(0);
+    face4.point_indexes.push_back(2);
     face4.point_indexes.push_back(3);
-    face4.point_indexes.push_back(4);
 
     faces.push_back(face1);
     faces.push_back(face2);
@@ -427,16 +428,15 @@ Figure createIcosahedron(Color kleur){
     std::vector<Vector3D> points;
     std::vector<Face> faces;
 
-    double PI = 3.14159265358979323846;
-    Vector3D p1 = Vector3D::point(0, 1, sqrt(5)/2);
+    Vector3D p1 = Vector3D::point(0, 0, sqrt(5)/2);
     points.push_back(p1);
     for(int i = 2; i < 7 ;i++){
-        Vector3D p = Vector3D::point(cos((i - 2)*2*PI/5), sin((i - 2)*2*PI/5), 0.5);
+        Vector3D p = Vector3D::point(cos(((i - 2)*(2*PI))/5), sin(((i - 2)*(2*PI))/5), 0.5);
         points.push_back(p);
     }
 
     for(int i = 7; i < 12; i++){
-        Vector3D p = Vector3D::point(cos(PI/5 + (i-7)*2*PI/5), sin(PI/5 + (i-7)*2*PI/5), -0.5);
+        Vector3D p = Vector3D::point(cos((PI/5) + ((i-7)*(2*PI))/5), sin((PI/5) + ((i-7)*(2*PI))/5), -0.5);
         points.push_back(p);
     }
 
@@ -781,22 +781,22 @@ Figure creatDodecahedron(Color kleur){
 
 }
 
-Figure createSphere(const int n){
+Figure createSphere(const int n, Color kleur){
     Figure s_figure;
     std::vector<Vector3D> points;
     std::vector<Face> faces;
-    Color kleur;
-    kleur.red = 1;
-    kleur.green = 0;
-    kleur.blue = 0;
+
     Figure i_figure = createIcosahedron(kleur);
     std::vector<Vector3D> i_points = i_figure.points;
     std::vector<Face> i_faces = i_figure.faces;
 
+    std::vector<Face> new_faces;
+    std::vector<Vector3D> new_points;
+
     for(int i = 0; i < n; i++){
-        std::vector<Face> new_faces;
-        std::vector<Vector3D> new_points;
-        for(auto &face : i_faces){
+        std::vector<Face> temp_faces = new_faces; // Temporarily store new faces
+        new_faces.clear();
+        for(auto &face : temp_faces){
             Vector3D p1 = i_points[face.point_indexes[0]];
             Vector3D p2 = i_points[face.point_indexes[1]];
             Vector3D p3 = i_points[face.point_indexes[2]];
@@ -843,6 +843,8 @@ Figure createSphere(const int n){
             new_faces.push_back(new_face2);
             new_faces.push_back(new_face3);
             new_faces.push_back(new_face4);
+
+
         }
         faces = new_faces;
         points = new_points;
@@ -873,6 +875,7 @@ Figure createCube(Color kleur){
     Vector3D p5 = Vector3D::point(1, 1, -1);
     Vector3D p6 = Vector3D::point(-1, -1, -1);
     Vector3D p7 = Vector3D::point(1, -1, 1);
+    Vector3D p8 = Vector3D::point(-1, 1, 1);
 
     points.push_back(p1);
     points.push_back(p2);
@@ -881,42 +884,43 @@ Figure createCube(Color kleur){
     points.push_back(p5);
     points.push_back(p6);
     points.push_back(p7);
+    points.push_back(p8);
 
     Face face1;
-    face1.point_indexes.push_back(1);
-    face1.point_indexes.push_back(5);
-    face1.point_indexes.push_back(3);
-    face1.point_indexes.push_back(7);
+    face1.point_indexes.push_back(0);
+    face1.point_indexes.push_back(4);
+    face1.point_indexes.push_back(2);
+    face1.point_indexes.push_back(6);
 
     Face face2;
-    face2.point_indexes.push_back(5);
+    face2.point_indexes.push_back(4);
+    face2.point_indexes.push_back(1);
+    face2.point_indexes.push_back(7);
     face2.point_indexes.push_back(2);
-    face2.point_indexes.push_back(8);
-    face2.point_indexes.push_back(3);
 
     Face face3;
-    face3.point_indexes.push_back(2);
-    face3.point_indexes.push_back(6);
-    face3.point_indexes.push_back(4);
-    face3.point_indexes.push_back(8);
+    face3.point_indexes.push_back(1);
+    face3.point_indexes.push_back(5);
+    face3.point_indexes.push_back(3);
+    face3.point_indexes.push_back(7);
 
     Face face4;
+    face4.point_indexes.push_back(5);
+    face4.point_indexes.push_back(0);
     face4.point_indexes.push_back(6);
-    face4.point_indexes.push_back(1);
-    face4.point_indexes.push_back(7);
-    face4.point_indexes.push_back(4);
+    face4.point_indexes.push_back(3);
 
     Face face5;
+    face5.point_indexes.push_back(6);
+    face5.point_indexes.push_back(2);
     face5.point_indexes.push_back(7);
     face5.point_indexes.push_back(3);
-    face5.point_indexes.push_back(8);
-    face5.point_indexes.push_back(4);
 
     Face face6;
-    face6.point_indexes.push_back(1);
-    face6.point_indexes.push_back(6);
-    face6.point_indexes.push_back(2);
+    face6.point_indexes.push_back(0);
     face6.point_indexes.push_back(5);
+    face6.point_indexes.push_back(1);
+    face6.point_indexes.push_back(4);
 
     faces.push_back(face1);
     faces.push_back(face2);
@@ -938,21 +942,27 @@ Figure createCone(const int n, const double h, Color kleur){
     std::vector<Vector3D> points;
     std::vector<Face> faces;
     Vector3D top = Vector3D::point(0, 0, h);
-    points.push_back(top);
     for(int i = 0; i < n; i++){
-        double x = cos(2*3.14159265358979323846*i/n);
-        double y = sin(2*3.14159265358979323846*i/n);
+        double x = cos(2*PI*i/n);
+        double y = sin(2*PI*i/n);
         Vector3D p = Vector3D::point(x, y, 0);
         points.push_back(p);
     }
+    points.push_back(top);
 
-    for(int i = 0; i < n; i++){
+    for(int i = 0; i <= n; i++){
         Face face;
         face.point_indexes.push_back(i);
         face.point_indexes.push_back((i+1)%n);
         face.point_indexes.push_back(n);
         faces.push_back(face);
     }
+
+    Face face_n;
+    for(int i = n-1; i>=0; i--){
+        face_n.point_indexes.push_back(i);
+    }
+    faces.push_back(face_n);
 
     c_figure.points = points;
     c_figure.faces = faces;
@@ -1005,7 +1015,6 @@ Figure createTorus(const int n, const int m, const double R, const double r, Col
     std::vector<Vector3D> points;
     std::vector<Face> faces;
 
-    double PI = 3.14159265358979323846;
     for(int i = 0; i < n; i++){
         for(int j = 0; j < m; j++){
             Vector3D p = Vector3D::point((R+r*cos(2*j*PI/m))*cos(2*i*PI/n), (R+r*cos(2*j*PI/m))*sin(2*i*PI/n), r*sin(2*j*PI/m));
@@ -1076,16 +1085,16 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
                 figuur = creatDodecahedron(figuur.color);
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Sphere"){
-                figuur = createSphere(configuration[fignum]["n"].as_int_or_die());
+                figuur = createSphere(configuration[fignum]["n"].as_int_or_die(), figuur.color);
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Cube"){
                 figuur = createCube(figuur.color);
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Cone"){
-                figuur = createCone(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["h"].as_double_or_die(), figuur.color);
+                figuur = createCone(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["height"].as_double_or_die(), figuur.color);
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Cylinder"){
-                figuur = createCylinder(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["h"].as_double_or_die(), figuur.color);
+                figuur = createCylinder(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["height"].as_double_or_die(), figuur.color);
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Torus"){
                 figuur = createTorus(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["m"].as_int_or_die(), configuration[fignum]["R"].as_double_or_die(), configuration[fignum]["r"].as_double_or_die(), figuur.color);
