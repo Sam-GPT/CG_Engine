@@ -340,7 +340,6 @@ Lines2D doProjection(const Figures3D &figs) {
     return lines;
 }
 
-
 void toPolar(const Vector3D &point,double &theta,double &phi,double &r){
     r = sqrt(pow(point.x, 2)+ pow(point.y, 2)+ pow(point.z, 2));
     theta = atan2(point.y, point.x);
@@ -372,6 +371,670 @@ Matrix eyePointTrans(const Vector3D &eyepoint){
 
 }
 
+
+
+Figure createTetrahedron(Color kleur){
+    Figure t_Figure;
+    std::vector<Vector3D> points;
+    std::vector<Face> faces;
+    Vector3D p1 = Vector3D::point(1, -1, -1);
+    Vector3D p2 = Vector3D::point(-1, 1, -1);
+    Vector3D p3 = Vector3D::point(1, 1, 1);
+    Vector3D p4 = Vector3D::point(-1, -1, 1);
+
+    points.push_back(p1);
+    points.push_back(p2);
+    points.push_back(p3);
+    points.push_back(p4);
+
+    Face face1;
+    face1.point_indexes.push_back(1);
+    face1.point_indexes.push_back(3);
+    face1.point_indexes.push_back(2);
+
+    Face face2;
+
+    face2.point_indexes.push_back(2);
+    face2.point_indexes.push_back(3);
+    face2.point_indexes.push_back(4);
+
+    Face face3;
+
+    face3.point_indexes.push_back(1);
+    face3.point_indexes.push_back(2);
+    face3.point_indexes.push_back(4);
+
+    Face face4;
+
+    face4.point_indexes.push_back(1);
+    face4.point_indexes.push_back(3);
+    face4.point_indexes.push_back(4);
+
+    faces.push_back(face1);
+    faces.push_back(face2);
+    faces.push_back(face3);
+    faces.push_back(face4);
+
+    t_Figure.points = points;
+    t_Figure.faces = faces;
+    t_Figure.color = kleur;
+
+    return t_Figure;
+}
+
+Figure createIcosahedron(Color kleur){
+    Figure I_figure;
+    std::vector<Vector3D> points;
+    std::vector<Face> faces;
+
+    double PI = 3.14159265358979323846;
+    Vector3D p1 = Vector3D::point(0, 1, sqrt(5)/2);
+    points.push_back(p1);
+    for(int i = 2; i < 7 ;i++){
+        Vector3D p = Vector3D::point(cos((i - 2)*2*PI/5), sin((i - 2)*2*PI/5), 0.5);
+        points.push_back(p);
+    }
+
+    for(int i = 7; i < 12; i++){
+        Vector3D p = Vector3D::point(cos(PI/5 + (i-7)*2*PI/5), sin(PI/5 + (i-7)*2*PI/5), -0.5);
+        points.push_back(p);
+    }
+
+    Vector3D p12 = Vector3D::point(0, 0, -sqrt(5)/2);
+    points.push_back(p12);
+
+    Face face1;
+    face1.point_indexes.push_back(0);
+    face1.point_indexes.push_back(1);
+    face1.point_indexes.push_back(2);
+
+    Face face2;
+    face2.point_indexes.push_back(0);
+    face2.point_indexes.push_back(2);
+    face2.point_indexes.push_back(3);
+
+    Face face3;
+    face3.point_indexes.push_back(0);
+    face3.point_indexes.push_back(3);
+    face3.point_indexes.push_back(4);
+
+    Face face4;
+    face4.point_indexes.push_back(0);
+    face4.point_indexes.push_back(4);
+    face4.point_indexes.push_back(5);
+
+    Face face5;
+    face5.point_indexes.push_back(0);
+    face5.point_indexes.push_back(5);
+    face5.point_indexes.push_back(1);
+
+    Face face6;
+    face6.point_indexes.push_back(1);
+    face6.point_indexes.push_back(6);
+    face6.point_indexes.push_back(2);
+
+    Face face7;
+    face7.point_indexes.push_back(2);
+    face7.point_indexes.push_back(6);
+    face7.point_indexes.push_back(7);
+
+    Face face8;
+    face8.point_indexes.push_back(2);
+    face8.point_indexes.push_back(7);
+    face8.point_indexes.push_back(3);
+
+    Face face9;
+    face9.point_indexes.push_back(3);
+    face9.point_indexes.push_back(7);
+    face9.point_indexes.push_back(8);
+
+    Face face10;
+    face10.point_indexes.push_back(3);
+    face10.point_indexes.push_back(8);
+    face10.point_indexes.push_back(4);
+
+    Face face11;
+    face11.point_indexes.push_back(4);
+    face11.point_indexes.push_back(8);
+    face11.point_indexes.push_back(9);
+
+    Face face12;
+    face12.point_indexes.push_back(4);
+    face12.point_indexes.push_back(9);
+    face12.point_indexes.push_back(5);
+
+    Face face13;
+    face13.point_indexes.push_back(5);
+    face13.point_indexes.push_back(9);
+    face13.point_indexes.push_back(10);
+
+    Face face14;
+    face14.point_indexes.push_back(5);
+    face14.point_indexes.push_back(10);
+    face14.point_indexes.push_back(1);
+
+    Face face15;
+    face15.point_indexes.push_back(1);
+    face15.point_indexes.push_back(10);
+    face15.point_indexes.push_back(6);
+
+    Face face16;
+    face16.point_indexes.push_back(11);
+    face16.point_indexes.push_back(7);
+    face16.point_indexes.push_back(6);
+
+    Face face17;
+    face17.point_indexes.push_back(11);
+    face17.point_indexes.push_back(8);
+    face17.point_indexes.push_back(7);
+
+    Face face18;
+    face18.point_indexes.push_back(11);
+    face18.point_indexes.push_back(9);
+    face18.point_indexes.push_back(8);
+
+    Face face19;
+    face19.point_indexes.push_back(11);
+    face19.point_indexes.push_back(10);
+    face19.point_indexes.push_back(9);
+
+    Face face20;
+    face20.point_indexes.push_back(11);
+    face20.point_indexes.push_back(6);
+    face20.point_indexes.push_back(10);
+
+    faces.push_back(face1);
+    faces.push_back(face2);
+    faces.push_back(face3);
+    faces.push_back(face4);
+    faces.push_back(face5);
+    faces.push_back(face6);
+    faces.push_back(face7);
+    faces.push_back(face8);
+    faces.push_back(face9);
+    faces.push_back(face10);
+    faces.push_back(face11);
+    faces.push_back(face12);
+    faces.push_back(face13);
+    faces.push_back(face14);
+    faces.push_back(face15);
+    faces.push_back(face16);
+    faces.push_back(face17);
+    faces.push_back(face18);
+    faces.push_back(face19);
+    faces.push_back(face20);
+
+    I_figure.points = points;
+    I_figure.faces = faces;
+    I_figure.color = kleur;
+
+    return I_figure;
+
+}
+
+Figure creatOctahedron(Color kleur){
+    Figure o_figure;
+    std::vector<Vector3D> points;
+    std::vector<Face> faces;
+
+    Vector3D p1 = Vector3D::point(1, 0, 0);
+    Vector3D p2 = Vector3D::point(0, 1, 0);
+    Vector3D p3 = Vector3D::point(-1, 0, 0);
+    Vector3D p4 = Vector3D::point(0, -1, 0);
+    Vector3D p5 = Vector3D::point(0, 0, -1);
+    Vector3D p6 = Vector3D::point(0, 0, 1);
+
+    points.push_back(p1);
+    points.push_back(p2);
+    points.push_back(p3);
+    points.push_back(p4);
+    points.push_back(p5);
+    points.push_back(p6);
+
+    Face face1;
+    face1.point_indexes.push_back(0);
+    face1.point_indexes.push_back(1);
+    face1.point_indexes.push_back(5);
+
+    Face face2;
+    face2.point_indexes.push_back(1);
+    face2.point_indexes.push_back(2);
+    face2.point_indexes.push_back(5);
+
+    Face face3;
+    face3.point_indexes.push_back(2);
+    face3.point_indexes.push_back(3);
+    face3.point_indexes.push_back(5);
+
+    Face face4;
+    face4.point_indexes.push_back(3);
+    face4.point_indexes.push_back(0);
+    face4.point_indexes.push_back(5);
+
+    Face face5;
+    face5.point_indexes.push_back(1);
+    face5.point_indexes.push_back(0);
+    face5.point_indexes.push_back(4);
+
+    Face face6;
+    face6.point_indexes.push_back(2);
+    face6.point_indexes.push_back(1);
+    face6.point_indexes.push_back(4);
+
+    Face face7;
+    face7.point_indexes.push_back(3);
+    face7.point_indexes.push_back(2);
+    face7.point_indexes.push_back(4);
+
+    Face face8;
+    face8.point_indexes.push_back(0);
+    face8.point_indexes.push_back(3);
+    face8.point_indexes.push_back(4);
+
+    faces.push_back(face1);
+    faces.push_back(face2);
+    faces.push_back(face3);
+    faces.push_back(face4);
+    faces.push_back(face5);
+    faces.push_back(face6);
+    faces.push_back(face7);
+    faces.push_back(face8);
+
+    o_figure.points = points;
+    o_figure.faces = faces;
+    o_figure.color = kleur;
+
+    return o_figure;
+}
+
+Figure creatDodecahedron(Color kleur){
+    Figure d_figure;
+    std::vector<Vector3D> points;
+    std::vector<Face> faces;
+
+    Figure I_figure = createIcosahedron(kleur);
+    std::vector<Vector3D> I_points = I_figure.points;
+    std::vector<Face> I_faces = I_figure.faces;
+
+    for(int i = 0; i < 20; i++){
+        Face face = I_faces[i];
+        double x = 0;
+        double y = 0;
+        double z = 0;
+        for(auto &index : face.point_indexes){
+            x+= I_points[index].x;
+            y+= I_points[index].y;
+            z+= I_points[index].z;
+        }
+        x/=3;
+        y/=3;
+        z/=3;
+        Vector3D center = Vector3D::point(x, y, z);
+        points.push_back(center);
+
+    }
+
+    Face face1;
+    face1.point_indexes.push_back(0);
+    face1.point_indexes.push_back(1);
+    face1.point_indexes.push_back(2);
+    face1.point_indexes.push_back(3);
+    face1.point_indexes.push_back(4);
+
+    Face face2;
+    face2.point_indexes.push_back(0);
+    face2.point_indexes.push_back(5);
+    face2.point_indexes.push_back(6);
+    face2.point_indexes.push_back(7);
+    face2.point_indexes.push_back(1);
+
+    Face face3;
+    face3.point_indexes.push_back(1);
+    face3.point_indexes.push_back(7);
+    face3.point_indexes.push_back(8);
+    face3.point_indexes.push_back(9);
+    face3.point_indexes.push_back(2);
+
+    Face face4;
+    face4.point_indexes.push_back(2);
+    face4.point_indexes.push_back(9);
+    face4.point_indexes.push_back(10);
+    face4.point_indexes.push_back(11);
+    face4.point_indexes.push_back(3);
+
+    Face face5;
+    face5.point_indexes.push_back(3);
+    face5.point_indexes.push_back(11);
+    face5.point_indexes.push_back(12);
+    face5.point_indexes.push_back(13);
+    face5.point_indexes.push_back(4);
+
+    Face face6;
+    face6.point_indexes.push_back(4);
+    face6.point_indexes.push_back(13);
+    face6.point_indexes.push_back(14);
+    face6.point_indexes.push_back(5);
+    face6.point_indexes.push_back(0);
+
+    Face face7;
+    face7.point_indexes.push_back(19);
+    face7.point_indexes.push_back(18);
+    face7.point_indexes.push_back(17);
+    face7.point_indexes.push_back(16);
+    face7.point_indexes.push_back(15);
+
+    Face face8;
+    face8.point_indexes.push_back(19);
+    face8.point_indexes.push_back(14);
+    face8.point_indexes.push_back(13);
+    face8.point_indexes.push_back(12);
+    face8.point_indexes.push_back(18);
+
+    Face face9;
+    face9.point_indexes.push_back(18);
+    face9.point_indexes.push_back(12);
+    face9.point_indexes.push_back(11);
+    face9.point_indexes.push_back(10);
+    face9.point_indexes.push_back(17);
+
+    Face face10;
+    face10.point_indexes.push_back(17);
+    face10.point_indexes.push_back(10);
+    face10.point_indexes.push_back(9);
+    face10.point_indexes.push_back(8);
+    face10.point_indexes.push_back(16);
+
+    Face face11;
+    face11.point_indexes.push_back(16);
+    face11.point_indexes.push_back(8);
+    face11.point_indexes.push_back(7);
+    face11.point_indexes.push_back(6);
+    face11.point_indexes.push_back(15);
+
+    Face face12;
+    face12.point_indexes.push_back(15);
+    face12.point_indexes.push_back(6);
+    face12.point_indexes.push_back(5);
+    face12.point_indexes.push_back(14);
+    face12.point_indexes.push_back(19);
+
+    faces.push_back(face1);
+    faces.push_back(face2);
+    faces.push_back(face3);
+    faces.push_back(face4);
+    faces.push_back(face5);
+    faces.push_back(face6);
+    faces.push_back(face7);
+    faces.push_back(face8);
+    faces.push_back(face9);
+    faces.push_back(face10);
+    faces.push_back(face11);
+    faces.push_back(face12);
+
+    d_figure.points = points;
+    d_figure.faces = faces;
+    d_figure.color = kleur;
+
+    return d_figure;
+
+
+
+}
+
+Figure createSphere(const int n){
+    Figure s_figure;
+    std::vector<Vector3D> points;
+    std::vector<Face> faces;
+    Color kleur;
+    kleur.red = 1;
+    kleur.green = 0;
+    kleur.blue = 0;
+    Figure i_figure = createIcosahedron(kleur);
+    std::vector<Vector3D> i_points = i_figure.points;
+    std::vector<Face> i_faces = i_figure.faces;
+
+    for(int i = 0; i < n; i++){
+        std::vector<Face> new_faces;
+        std::vector<Vector3D> new_points;
+        for(auto &face : i_faces){
+            Vector3D p1 = i_points[face.point_indexes[0]];
+            Vector3D p2 = i_points[face.point_indexes[1]];
+            Vector3D p3 = i_points[face.point_indexes[2]];
+
+            Vector3D p4 = (p1 + p2)/2;
+            Vector3D p5 = (p2 + p3)/2;
+            Vector3D p6 = (p1 + p3)/2;
+
+
+            int index1 = new_points.size();
+            new_points.push_back(p1);
+            int index2 = new_points.size();
+            new_points.push_back(p2);
+            int index3 = new_points.size();
+            new_points.push_back(p3);
+            int index4 = new_points.size();
+            new_points.push_back(p4);
+            int index5 = new_points.size();
+            new_points.push_back(p5);
+            int index6 = new_points.size();
+            new_points.push_back(p6);
+
+            Face new_face1;
+            new_face1.point_indexes.push_back(index1);
+            new_face1.point_indexes.push_back(index4);
+            new_face1.point_indexes.push_back(index6);
+
+            Face new_face2;
+            new_face2.point_indexes.push_back(index4);
+            new_face2.point_indexes.push_back(index2);
+            new_face2.point_indexes.push_back(index5);
+
+            Face new_face3;
+            new_face3.point_indexes.push_back(index6);
+            new_face3.point_indexes.push_back(index5);
+            new_face3.point_indexes.push_back(index3);
+
+            Face new_face4;
+            new_face4.point_indexes.push_back(index4);
+            new_face4.point_indexes.push_back(index5);
+            new_face4.point_indexes.push_back(index6);
+
+            new_faces.push_back(new_face1);
+            new_faces.push_back(new_face2);
+            new_faces.push_back(new_face3);
+            new_faces.push_back(new_face4);
+        }
+        faces = new_faces;
+        points = new_points;
+    }
+
+    for(auto &point : points){
+        point.normalise();
+    }
+    s_figure.points = points;
+    s_figure.faces = faces;
+    s_figure.color = kleur;
+
+    return s_figure;
+
+
+
+}
+
+Figure createCube(Color kleur){
+    Figure c_figure;
+    std::vector<Vector3D> points;
+    std::vector<Face> faces;
+
+    Vector3D p1 = Vector3D::point(1, -1, -1);
+    Vector3D p2 = Vector3D::point(-1, 1, -1);
+    Vector3D p3 = Vector3D::point(1, 1, 1);
+    Vector3D p4 = Vector3D::point(-1, -1, 1);
+    Vector3D p5 = Vector3D::point(1, 1, -1);
+    Vector3D p6 = Vector3D::point(-1, -1, -1);
+    Vector3D p7 = Vector3D::point(1, -1, 1);
+
+    points.push_back(p1);
+    points.push_back(p2);
+    points.push_back(p3);
+    points.push_back(p4);
+    points.push_back(p5);
+    points.push_back(p6);
+    points.push_back(p7);
+
+    Face face1;
+    face1.point_indexes.push_back(1);
+    face1.point_indexes.push_back(5);
+    face1.point_indexes.push_back(3);
+    face1.point_indexes.push_back(7);
+
+    Face face2;
+    face2.point_indexes.push_back(5);
+    face2.point_indexes.push_back(2);
+    face2.point_indexes.push_back(8);
+    face2.point_indexes.push_back(3);
+
+    Face face3;
+    face3.point_indexes.push_back(2);
+    face3.point_indexes.push_back(6);
+    face3.point_indexes.push_back(4);
+    face3.point_indexes.push_back(8);
+
+    Face face4;
+    face4.point_indexes.push_back(6);
+    face4.point_indexes.push_back(1);
+    face4.point_indexes.push_back(7);
+    face4.point_indexes.push_back(4);
+
+    Face face5;
+    face5.point_indexes.push_back(7);
+    face5.point_indexes.push_back(3);
+    face5.point_indexes.push_back(8);
+    face5.point_indexes.push_back(4);
+
+    Face face6;
+    face6.point_indexes.push_back(1);
+    face6.point_indexes.push_back(6);
+    face6.point_indexes.push_back(2);
+    face6.point_indexes.push_back(5);
+
+    faces.push_back(face1);
+    faces.push_back(face2);
+    faces.push_back(face3);
+    faces.push_back(face4);
+    faces.push_back(face5);
+    faces.push_back(face6);
+
+    c_figure.points = points;
+    c_figure.faces = faces;
+    c_figure.color = kleur;
+
+    return c_figure;
+
+}
+
+Figure createCone(const int n, const double h, Color kleur){
+    Figure c_figure;
+    std::vector<Vector3D> points;
+    std::vector<Face> faces;
+    Vector3D top = Vector3D::point(0, 0, h);
+    points.push_back(top);
+    for(int i = 0; i < n; i++){
+        double x = cos(2*3.14159265358979323846*i/n);
+        double y = sin(2*3.14159265358979323846*i/n);
+        Vector3D p = Vector3D::point(x, y, 0);
+        points.push_back(p);
+    }
+
+    for(int i = 0; i < n; i++){
+        Face face;
+        face.point_indexes.push_back(i);
+        face.point_indexes.push_back((i+1)%n);
+        face.point_indexes.push_back(n);
+        faces.push_back(face);
+    }
+
+    c_figure.points = points;
+    c_figure.faces = faces;
+    c_figure.color = kleur;
+
+    return c_figure;
+
+
+}
+
+Figure createCylinder(const int n, const double h, Color kleur){
+    Figure c_figure;
+    std::vector<Vector3D> points;
+    std::vector<Face> faces;
+    for(int i = 0; i < n; i++){
+        double x = cos(2*3.14159265358979323846*i/n);
+        double y = sin(2*3.14159265358979323846*i/n);
+        Vector3D p1 = Vector3D::point(x, y, 0);
+        Vector3D p2 = Vector3D::point(x, y, h);
+        points.push_back(p1);
+        points.push_back(p2);
+    }
+
+    for(int i = 0; i < n; i++){
+        Face face1;
+        face1.point_indexes.push_back(2*i);
+        face1.point_indexes.push_back((2*i+2)%(2*n));
+        face1.point_indexes.push_back((2*i+3)%(2*n));
+        face1.point_indexes.push_back(2*i+1);
+        faces.push_back(face1);
+
+        Face face2;
+        face2.point_indexes.push_back(2*i);
+        face2.point_indexes.push_back(2*i+1);
+        face2.point_indexes.push_back((2*i+3)%(2*n));
+        face2.point_indexes.push_back((2*i+2)%(2*n));
+        faces.push_back(face2);
+    }
+
+    c_figure.points = points;
+    c_figure.faces = faces;
+    c_figure.color = kleur;
+
+    return c_figure;
+
+}
+
+Figure createTorus(const int n, const int m, const double R, const double r, Color kleur){
+    Figure t_figure;
+    std::vector<Vector3D> points;
+    std::vector<Face> faces;
+
+    double PI = 3.14159265358979323846;
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < m; j++){
+            Vector3D p = Vector3D::point((R+r*cos(2*j*PI/m))*cos(2*i*PI/n), (R+r*cos(2*j*PI/m))*sin(2*i*PI/n), r*sin(2*j*PI/m));
+            points.push_back(p);
+        }
+    }
+
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < m; j++){
+            Face face1;
+            face1.point_indexes.push_back(i*m+j);
+            face1.point_indexes.push_back((i+1)%n*m+j);
+            face1.point_indexes.push_back((i+1)%n*m+(j+1)%m);
+            face1.point_indexes.push_back(i*m+(j+1)%m);
+            faces.push_back(face1);
+        }
+    }
+
+    t_figure.points = points;
+    t_figure.faces = faces;
+    t_figure.color = kleur;
+
+    return t_figure;
+
+
+
+}
+
+
 img::EasyImage generate_image(const ini::Configuration &configuration)
 {
 
@@ -400,27 +1063,58 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
             figuur.color.blue = clr[2];
 
 
-            for(int j =0; j< configuration[fignum]["nrLines"].as_int_or_die(); j++ ){
-                Face face{};
-                std::string linenum = "line"+ std::to_string(j);
-                std::vector<int> vec = configuration[fignum][linenum].as_int_tuple_or_die();
+            if(configuration[fignum]["type"].as_string_or_die() == "Tetrahedron"){
+                figuur = createTetrahedron(figuur.color);
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "Icosahedron"){
+                figuur = createIcosahedron(figuur.color);
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "Octahedron"){
+                figuur = creatOctahedron(figuur.color);
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "Dodecahedron"){
+                figuur = creatDodecahedron(figuur.color);
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "Sphere"){
+                figuur = createSphere(configuration[fignum]["n"].as_int_or_die());
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "Cube"){
+                figuur = createCube(figuur.color);
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "Cone"){
+                figuur = createCone(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["h"].as_double_or_die(), figuur.color);
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "Cylinder"){
+                figuur = createCylinder(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["h"].as_double_or_die(), figuur.color);
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "Torus"){
+                figuur = createTorus(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["m"].as_int_or_die(), configuration[fignum]["R"].as_double_or_die(), configuration[fignum]["r"].as_double_or_die(), figuur.color);
+            }
 
-                for(auto &num : vec){
-                    face.point_indexes.push_back(num);
+            if(configuration[fignum]["type"].as_string_or_die() == "LineDrawing"){
+                for(int j =0; j< configuration[fignum]["nrLines"].as_int_or_die(); j++ ){
+                    Face face{};
+                    std::string linenum = "line"+ std::to_string(j);
+                    std::vector<int> vec = configuration[fignum][linenum].as_int_tuple_or_die();
+
+                    for(auto &num : vec){
+                        face.point_indexes.push_back(num);
+                    }
+                    figuur.faces.push_back(face);
                 }
-                figuur.faces.push_back(face);
+
+                for(int k = 0; k < configuration[fignum]["nrPoints"].as_int_or_die(); k++){
+                    std::string pointnum = "point"+ std::to_string(k);
+
+
+                    std::vector<double> vec = configuration[fignum][pointnum].as_double_tuple_or_die();
+                    Vector3D point = Vector3D::point(vec[0], vec[1], vec[2]);
+
+                    figuur.points.push_back(point);
+
+                }
             }
 
-            for(int k = 0; k < configuration[fignum]["nrPoints"].as_int_or_die(); k++){
-                std::string pointnum = "point"+ std::to_string(k);
-
-
-                std::vector<double> vec = configuration[fignum][pointnum].as_double_tuple_or_die();
-                Vector3D point = Vector3D::point(vec[0], vec[1], vec[2]);
-
-                figuur.points.push_back(point);
-
-            }
 
 
             Matrix scale_matrix = scaleFigure(configuration[fignum]["scale"].as_double_or_die());
@@ -462,6 +1156,9 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
 
 
 }
+
+
+
 
 int main(int argc, char const* argv[])
 {
