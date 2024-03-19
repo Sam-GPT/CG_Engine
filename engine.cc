@@ -66,7 +66,7 @@ std::string Replace(std::string& string, const LParser::LSystem2D &l_system){
     std::string newstring = "";
 
     for(auto& i : string){
-        if(i== '+' || i == '-' || i == '(' || i == ')'){
+        if(i== '+' || i == '-' || i == '(' || i == ')' || i == '^' || i == '&' || i == '\'' || i == '/'){
             newstring+=i;
         }
         else{
@@ -89,7 +89,34 @@ std::string FullString(const LParser::LSystem2D &l_system){
     return cur_string;
 }
 
-double degreesToRadians(double& degrees) {
+std::string Replace(std::string& string, const LParser::LSystem3D &l_system){
+    std::string newstring = "";
+    for(auto& i : string){
+        if(i== '+' || i == '-' || i == '(' || i == ')' || i == '^' || i == '&' || i == '\\' || i == '/' || i == '|'){
+            newstring+=i;
+        }
+        else{
+            std::cout<<i<<std::endl;
+            newstring+= l_system.get_replacement(i);
+        }
+
+    }
+    return newstring;
+
+}
+std::string FullString(const LParser::LSystem3D &l_system){
+    std::string cur_string = l_system.get_initiator();
+
+    for(int i = 0; i < l_system.get_nr_iterations(); i++){
+        std::string newstring = Replace(cur_string, l_system);
+        cur_string = newstring;
+
+    }
+    std::cout<<cur_string <<std::endl;
+    return cur_string;
+}
+
+double degreesToRadians(const double& degrees) {
     return degrees * (PI / 180.0);
 }
 
@@ -148,7 +175,6 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size, const ini::Confi
     image.clear(img::Color(bgcolor[0]*255, bgcolor[1]*255, bgcolor[2]*255));
 
     for(auto &line : newLines){
-
         image.draw_line(line.p1.x, line.p1.y, line.p2.x, line.p2.y,img::Color((line.color.red)*255,(line.color.green)*255, (line.color.blue)*255));
 
     }
@@ -220,6 +246,94 @@ Lines2D drawLSystem(const LParser::LSystem2D &l_system , const ini::Configuratio
     return lines;
 
 }
+
+Figure draw3DLSystem(const LParser::LSystem3D &l_system , const ini::Configuration &configuration, std::string& fignum){
+    Figure figuur;
+
+    figuur.color.red = configuration[fignum]["color"].as_double_tuple_or_die()[0];
+    figuur.color.green = configuration[fignum]["color"].as_double_tuple_or_die()[1];
+    figuur.color.blue = configuration[fignum]["color"].as_double_tuple_or_die()[2];
+
+    std::stack<std::vector<Vector3D>> myStack;
+
+    double delta = l_system.get_angle();
+
+    std::string strings = FullString(l_system);
+
+    std::set<char> alfabet = l_system.get_alphabet();
+
+    Vector3D cur_position = Vector3D::point(0,0,0);
+
+    Vector3D vec_H = Vector3D::vector(1,0,0);
+
+    Vector3D vec_L = Vector3D::vector(0,1,0);
+
+    Vector3D vec_U = Vector3D::vector(0,0,1);
+
+    for(auto& i : strings){
+        if(alfabet.find(i)!= alfabet.end() && l_system.draw(i)){
+
+            figuur.points.push_back(cur_position);
+
+            cur_position+=vec_H;
+
+            figuur.points.push_back(cur_position);
+
+            Face new_face;
+            new_face.point_indexes.push_back(figuur.points.size()-2);
+            new_face.point_indexes.push_back(figuur.points.size()-1);
+            figuur.faces.push_back(new_face);
+
+
+        }
+        else if(i == '+'){
+            vec_H = vec_H*cos(degreesToRadians(delta)) + vec_L*sin(degreesToRadians(delta));
+            vec_L = -vec_H*sin(degreesToRadians(delta)) + vec_L*cos(degreesToRadians(delta));
+        }
+        else if(i =='-'){
+            vec_H = vec_H*cos(degreesToRadians(-delta)) + vec_L*sin(degreesToRadians(-delta));
+            vec_L = -vec_H*sin(degreesToRadians(-delta)) + vec_L*cos(degreesToRadians(-delta));
+        }
+        else if(i == '^'){
+            vec_H = vec_H*cos(degreesToRadians(delta)) + vec_U*sin(degreesToRadians(delta));
+            vec_U = -vec_H*sin(degreesToRadians(delta)) + vec_U*cos(degreesToRadians(delta));
+        }
+        else if(i == '&'){
+            vec_H = vec_H*cos(degreesToRadians(-delta)) + vec_U*sin(degreesToRadians(-delta));
+            vec_U = -vec_H*sin(degreesToRadians(-delta)) + vec_U*cos(degreesToRadians(-delta));
+        }
+        else if(i == '\\'){
+            vec_L = vec_L*cos(degreesToRadians(delta)) - vec_U* sin(degreesToRadians(delta));
+            vec_U = vec_L*sin(degreesToRadians(delta)) + vec_U* cos(degreesToRadians(delta));
+        }
+        else if(i == '/'){
+            vec_L = vec_L*cos(degreesToRadians(-delta)) - vec_U* sin(degreesToRadians(-delta));
+            vec_U = vec_L*sin(degreesToRadians(-delta)) + vec_U* cos(degreesToRadians(-delta));
+        }
+        else if(i == '|'){
+            vec_H *= -1;
+            vec_L *= -1;
+        }
+        else if(i == '('){
+            std::vector<Vector3D> topush = {cur_position, vec_H, vec_L, vec_U};
+            myStack.push(topush);
+        }
+        else{
+            std::vector<Vector3D> poped = myStack.top();
+            myStack.pop();
+
+            cur_position = poped[0];
+            vec_H = poped[1];
+            vec_L = poped[2];
+            vec_U = poped[3];
+
+        }
+    }
+
+    return figuur;
+}
+
+
 
 
 Matrix scaleFigure(const double scale){
@@ -327,11 +441,7 @@ Lines2D doProjection(const Figures3D &figs) {
             newline.color.blue = fig.color.blue;
 
 
-
-
             lines.push_back(newline);
-
-
 
         }
         fig_num++;
@@ -1100,6 +1210,14 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Torus"){
                 figuur = createTorus(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["m"].as_int_or_die(), configuration[fignum]["R"].as_double_or_die(), configuration[fignum]["r"].as_double_or_die(), figuur.color);
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "3DLSystem"){
+                LParser::LSystem3D l_system;
+                std::ifstream input_stream(configuration[fignum]["inputfile"].as_string_or_die());
+                input_stream >> l_system;
+
+               figuur = draw3DLSystem(l_system, configuration, fignum);
+
             }
 
             if(configuration[fignum]["type"].as_string_or_die() == "LineDrawing"){
