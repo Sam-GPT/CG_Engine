@@ -271,7 +271,11 @@ Figure draw3DLSystem(const LParser::LSystem3D &l_system , const ini::Configurati
 
     Vector3D vec_U = Vector3D::vector(0,0,1);
 
+
     for(auto& i : strings){
+        Vector3D oud_hvector = vec_H;
+        Vector3D oud_lvector = vec_L;
+        Vector3D oud_uvector = vec_U;
         if(alfabet.find(i)!= alfabet.end() && l_system.draw(i)){
 
             figuur.points.push_back(cur_position);
@@ -290,38 +294,26 @@ Figure draw3DLSystem(const LParser::LSystem3D &l_system , const ini::Configurati
 
         }
         else if(i == '+'){
-            Vector3D oud_hvector = vec_H;
-            Vector3D oud_lvector = vec_L;
             vec_H = oud_hvector*cos(delta_radians) + oud_lvector*sin(delta_radians);
             vec_L = -oud_hvector*sin(delta_radians) + oud_lvector*cos(delta_radians);
         }
         else if(i =='-'){
-            Vector3D oud_hvector = vec_H;
-            Vector3D oud_lvector = vec_L;
             vec_H = oud_hvector*cos(-delta_radians) + oud_lvector*sin(-delta_radians);
             vec_L = -oud_hvector*sin(-delta_radians) + oud_lvector*cos(-delta_radians);
         }
         else if(i == '^'){
-            Vector3D oud_hvector = vec_H;
-            Vector3D oud_uvector = vec_U;
             vec_H = oud_hvector*cos(delta_radians) + oud_uvector*sin(delta_radians);
             vec_U = -oud_hvector*sin(delta_radians) + oud_uvector*cos(delta_radians);
         }
         else if(i == '&'){
-            Vector3D oud_hvector = vec_H;
-            Vector3D oud_uvector = vec_U;
             vec_H = oud_hvector*cos(-delta_radians) + oud_uvector*sin(-delta_radians);
             vec_U = -oud_hvector*sin(-delta_radians) + oud_uvector*cos(-delta_radians);
         }
         else if(i == '\\'){
-            Vector3D oud_lvector = vec_L;
-            Vector3D oud_uvector = vec_U;
             vec_L = oud_lvector*cos(delta_radians) - oud_uvector* sin(delta_radians);
             vec_U = oud_lvector*sin(delta_radians) + oud_uvector* cos(delta_radians);
         }
         else if(i == '/'){
-            Vector3D oud_lvector = vec_L;
-            Vector3D oud_uvector = vec_U;
             vec_L = oud_lvector*cos(-delta_radians) - oud_uvector* sin(-delta_radians);
             vec_U = oud_lvector*sin(-delta_radians) + oud_uvector* cos(-delta_radians);
         }
@@ -1169,6 +1161,8 @@ Figure createTorus(const int n, const int m, const double R, const double r, Col
 
 
 }
+
+
 
 
 img::EasyImage generate_image(const ini::Configuration &configuration)
