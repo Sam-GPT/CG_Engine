@@ -81,7 +81,7 @@ std::string Replace(std::string& string, const LParser::LSystem2D &l_system){
 std::string FullString(const LParser::LSystem2D &l_system){
     std::string cur_string = l_system.get_initiator();
 
-    for(int i = 0; i < l_system.get_nr_iterations(); i++){
+    for(size_t i = 0; i < l_system.get_nr_iterations(); i++){
         std::string newstring = Replace(cur_string, l_system);
         cur_string = newstring;
     }
@@ -90,14 +90,14 @@ std::string FullString(const LParser::LSystem2D &l_system){
 }
 
 std::string Replace(std::string& string, const LParser::LSystem3D &l_system){
-    std::string newstring = "";
+    std::string newstring;
     for(auto& i : string){
         if(i== '+' || i == '-' || i == '(' || i == ')' || i == '^' || i == '&' || i == '\\' || i == '/' || i == '|'){
             newstring+=i;
         }
         else{
-            std::cout<<i<<std::endl;
             newstring+= l_system.get_replacement(i);
+            
         }
 
     }
@@ -107,12 +107,11 @@ std::string Replace(std::string& string, const LParser::LSystem3D &l_system){
 std::string FullString(const LParser::LSystem3D &l_system){
     std::string cur_string = l_system.get_initiator();
 
-    for(int i = 0; i < l_system.get_nr_iterations(); i++){
+    for(size_t i = 0; i < l_system.get_nr_iterations(); i++){
         std::string newstring = Replace(cur_string, l_system);
         cur_string = newstring;
 
     }
-    std::cout<<cur_string <<std::endl;
     return cur_string;
 }
 
@@ -258,6 +257,8 @@ Figure draw3DLSystem(const LParser::LSystem3D &l_system , const ini::Configurati
 
     double delta = l_system.get_angle();
 
+    double delta_radians = degreesToRadians(delta);
+
     std::string strings = FullString(l_system);
 
     std::set<char> alfabet = l_system.get_alphabet();
@@ -275,9 +276,11 @@ Figure draw3DLSystem(const LParser::LSystem3D &l_system , const ini::Configurati
 
             figuur.points.push_back(cur_position);
 
-            cur_position+=vec_H;
+            Vector3D new_point = cur_position + vec_H;
 
-            figuur.points.push_back(cur_position);
+            figuur.points.push_back(new_point);
+
+            cur_position = new_point;
 
             Face new_face;
             new_face.point_indexes.push_back(figuur.points.size()-2);
@@ -287,28 +290,40 @@ Figure draw3DLSystem(const LParser::LSystem3D &l_system , const ini::Configurati
 
         }
         else if(i == '+'){
-            vec_H = vec_H*cos(degreesToRadians(delta)) + vec_L*sin(degreesToRadians(delta));
-            vec_L = -vec_H*sin(degreesToRadians(delta)) + vec_L*cos(degreesToRadians(delta));
+            Vector3D oud_hvector = vec_H;
+            Vector3D oud_lvector = vec_L;
+            vec_H = oud_hvector*cos(delta_radians) + oud_lvector*sin(delta_radians);
+            vec_L = -oud_hvector*sin(delta_radians) + oud_lvector*cos(delta_radians);
         }
         else if(i =='-'){
-            vec_H = vec_H*cos(degreesToRadians(-delta)) + vec_L*sin(degreesToRadians(-delta));
-            vec_L = -vec_H*sin(degreesToRadians(-delta)) + vec_L*cos(degreesToRadians(-delta));
+            Vector3D oud_hvector = vec_H;
+            Vector3D oud_lvector = vec_L;
+            vec_H = oud_hvector*cos(-delta_radians) + oud_lvector*sin(-delta_radians);
+            vec_L = -oud_hvector*sin(-delta_radians) + oud_lvector*cos(-delta_radians);
         }
         else if(i == '^'){
-            vec_H = vec_H*cos(degreesToRadians(delta)) + vec_U*sin(degreesToRadians(delta));
-            vec_U = -vec_H*sin(degreesToRadians(delta)) + vec_U*cos(degreesToRadians(delta));
+            Vector3D oud_hvector = vec_H;
+            Vector3D oud_uvector = vec_U;
+            vec_H = oud_hvector*cos(delta_radians) + oud_uvector*sin(delta_radians);
+            vec_U = -oud_hvector*sin(delta_radians) + oud_uvector*cos(delta_radians);
         }
         else if(i == '&'){
-            vec_H = vec_H*cos(degreesToRadians(-delta)) + vec_U*sin(degreesToRadians(-delta));
-            vec_U = -vec_H*sin(degreesToRadians(-delta)) + vec_U*cos(degreesToRadians(-delta));
+            Vector3D oud_hvector = vec_H;
+            Vector3D oud_uvector = vec_U;
+            vec_H = oud_hvector*cos(-delta_radians) + oud_uvector*sin(-delta_radians);
+            vec_U = -oud_hvector*sin(-delta_radians) + oud_uvector*cos(-delta_radians);
         }
         else if(i == '\\'){
-            vec_L = vec_L*cos(degreesToRadians(delta)) - vec_U* sin(degreesToRadians(delta));
-            vec_U = vec_L*sin(degreesToRadians(delta)) + vec_U* cos(degreesToRadians(delta));
+            Vector3D oud_lvector = vec_L;
+            Vector3D oud_uvector = vec_U;
+            vec_L = oud_lvector*cos(delta_radians) - oud_uvector* sin(delta_radians);
+            vec_U = oud_lvector*sin(delta_radians) + oud_uvector* cos(delta_radians);
         }
         else if(i == '/'){
-            vec_L = vec_L*cos(degreesToRadians(-delta)) - vec_U* sin(degreesToRadians(-delta));
-            vec_U = vec_L*sin(degreesToRadians(-delta)) + vec_U* cos(degreesToRadians(-delta));
+            Vector3D oud_lvector = vec_L;
+            Vector3D oud_uvector = vec_U;
+            vec_L = oud_lvector*cos(-delta_radians) - oud_uvector* sin(-delta_radians);
+            vec_U = oud_lvector*sin(-delta_radians) + oud_uvector* cos(-delta_radians);
         }
         else if(i == '|'){
             vec_H *= -1;
