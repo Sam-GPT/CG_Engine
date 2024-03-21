@@ -29,6 +29,8 @@ set(engine_sources
         Figure.h
 		Face.h
 		vector3d.cc
+        ZBuffer.h
+		ZBuffer.cpp
 )
 
 ############################################################

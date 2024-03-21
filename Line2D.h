@@ -13,6 +13,10 @@ public:
     Point2D p2;
     Color color;
 
+    double z1;
+    double z2;
+
+
 };
 
 
