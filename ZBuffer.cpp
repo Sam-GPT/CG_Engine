@@ -4,21 +4,12 @@
 
 #include "ZBuffer.h"
 
-ZBuffer::ZBuffer(const int width,const int height){
+ZBuffer::ZBuffer(const int w_idth,const int h_eight){
 
-    if (width <= 0 || height <= 0 || width > 10000 || height > 10000) {
-        cout<<"Width : "<<width<<" Height : "<<height<<endl;
-        throw std::invalid_argument("Width and height must be positive and not excessively large.");
-    }
-    this->width = width;
-    this->height = height;
+    width = w_idth;
+    height = h_eight;
 
     buffer.resize(width, std::vector<double>(height, std::numeric_limits<double>::infinity()));
-    for(int i = 0; i<width; i++){
-        for(int j = 0; j < height; j++){
-            buffer[i][j] = std::numeric_limits<double>::infinity();
-        }
-    }
 
 
 

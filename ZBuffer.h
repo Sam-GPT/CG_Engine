@@ -16,7 +16,7 @@ class ZBuffer{
     double height;
 
 public:
-    ZBuffer(int width, int height);
+    ZBuffer(int w_idth, int h_eight);
 
     std::vector<std::vector<double>> buffer;
 

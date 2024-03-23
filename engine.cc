@@ -129,27 +129,31 @@ void draw_zbuf_line(ZBuffer &buffer, img::EasyImage &image, unsigned int x0, uns
            << image.get_width() << " and height " << image.get_height();
         throw std::runtime_error(ss.str());
     }
+
     if (x0 == x1)
     {
         //special case for x0 == x1
-        unsigned int aantal_pixels = y0 - y1;
+        unsigned int aantal_pixels = std::max(y0 ,y1) - std::min(y0, y1) + 1;
         unsigned int current_pixelNum = aantal_pixels;
 
         for (unsigned int i = std::min(y0, y1); i <= std::max(y0, y1); i++){
             double p = (double)current_pixelNum/aantal_pixels;
             double zb_waarde = (p/z0) + ((1-p)/z1);
+
+
             if(zb_waarde < buffer.buffer[x0][i]){
                 (image)(x0, i) = color;
                 buffer.buffer[x0][i] = zb_waarde;
-            }
 
+            }
+            current_pixelNum--;
 
         }
     }
     else if (y0 == y1)
     {
         //special case for y0 == y1
-        unsigned int aantal_pixels = x0 - x1;
+        unsigned int aantal_pixels = std::max(x0 ,x1) -std::min(x0, x1) + 1;
         unsigned int current_pixelNum = aantal_pixels;
 
         for (unsigned int i = std::min(x0, x1); i <= std::max(x0, x1); i++){
@@ -158,8 +162,11 @@ void draw_zbuf_line(ZBuffer &buffer, img::EasyImage &image, unsigned int x0, uns
             if(zb_waarde < buffer.buffer[i][y0]){
                 (image)(i, y0) = color;
                 buffer.buffer[i][y0] = zb_waarde;
+
             }
+            current_pixelNum--;
         }
+
 
     }
     else
@@ -173,41 +180,51 @@ void draw_zbuf_line(ZBuffer &buffer, img::EasyImage &image, unsigned int x0, uns
         double m = ((double) y1 - (double) y0) / ((double) x1 - (double) x0);
         if (-1.0 <= m && m <= 1.0)
         {
-            ///Recheck for zekerheid
+            unsigned int aantal_pixels = std::max(x1, x0) - std::min(x1, x0) + 1;
+            unsigned int current_pixelNum = aantal_pixels;
             for (unsigned int i = 0; i <= (x1 - x0); i++)
             {
-                double p = (double)i/(x1-x0);
+                double p = (double)current_pixelNum/aantal_pixels;
                 double zb_waarde = (p/z0) + ((1-p)/z1);
                 if(zb_waarde < buffer.buffer[x0 + i][(unsigned int) round(y0 + m * i)]){
                     (image)(x0 + i, (unsigned int) round(y0 + m * i)) = color;
                     buffer.buffer[x0 + i][(unsigned int) round(y0 + m * i)] = zb_waarde;
+
                 }
+                current_pixelNum--;
             }
 
         }
         else if (m > 1.0)
         {
+            unsigned int aantal_pixels = std::max(y1, y0) - std::min(y1, y0) + 1;
+            unsigned int current_pixelNum = aantal_pixels;
             for (unsigned int i = 0; i <= (y1 - y0); i++)
             {
-                double p = (double)i/(y1-y0);
+                double p = (double)current_pixelNum/aantal_pixels;
                 double zb_waarde = (p/z0) + ((1-p)/z1);
                 if(zb_waarde < buffer.buffer[(unsigned int) round(x0 + (i / m))][y0 + i]){
                     (image)((unsigned int) round(x0 + (i / m)), y0 + i) = color;
                     buffer.buffer[(unsigned int) round(x0 + (i / m))][y0 + i] = zb_waarde;
+
                 }
+                current_pixelNum--;
             }
 
         }
         else if (m < -1.0)
         {
+            unsigned int aantal_pixels = std::max(y0, y1) - std::min(y0, y1) + 1;
+            unsigned int current_pixelNum = aantal_pixels;
             for (unsigned int i = 0; i <= (y0 - y1); i++)
             {
-                double p = (double)i/(y0-y1);
+                double p = (double)current_pixelNum/aantal_pixels;
                 double zb_waarde = (p/z0) + ((1-p)/z1);
                 if(zb_waarde < buffer.buffer[(unsigned int) round(x0 - (i / m))][y0 - i]){
                     (image)((unsigned int) round(x0 - (i / m)), y0 - i) = color;
                     buffer.buffer[(unsigned int) round(x0 - (i / m))][y0 - i] = zb_waarde;
                 }
+                current_pixelNum--;
             }
 
         }
@@ -227,7 +244,7 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size, const ini::Confi
     }
     double xrange = xmax - xmin;
     double yrange = ymax - ymin;
-    cout<<"Xrange: "<<xrange<<" Yrange: "<<yrange<<endl;
+
 
     double imageX = size * (xrange/ fmax(xrange,yrange));
     double imageY = size * (yrange/ fmax(xrange,yrange));
@@ -268,7 +285,6 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size, const ini::Confi
     std::vector<double> bgcolor = configuration["General"]["backgroundcolor"];
     image.clear(img::Color(bgcolor[0]*255, bgcolor[1]*255, bgcolor[2]*255));
 
-    cout<<"ImageX: "<<imageX<<" ImageY: "<<imageY<<endl;
     ZBuffer buffer(imageX, imageY);
     for(auto &line : newLines){
         if(configuration["General"]["type"].as_string_or_die() == "ZBufferedWireframe"){
@@ -528,9 +544,8 @@ Lines2D doProjection(const Figures3D &figs) {
                 newline.p1 = doProjection(fig.points[begin], 1);
                 newline.p2 = doProjection(fig.points[end], 1);
 
-                newline.z1 = 1/fig.points[begin].z;
-                newline.z2 = 1/fig.points[end].z;
-
+                newline.z1 = fig.points[begin].z;
+                newline.z2 = fig.points[end].z;
 
                 newline.color.red = fig.color.red;
                 newline.color.green = fig.color.green;
@@ -548,6 +563,8 @@ Lines2D doProjection(const Figures3D &figs) {
             Line2D newline{};
             newline.p1 = doProjection(fig.points[begin], 1);
             newline.p2 = doProjection(fig.points[end], 1);
+            newline.z1 = fig.points[begin].z;
+            newline.z2 = fig.points[end].z;
 
             newline.color.red = fig.color.red;
             newline.color.green = fig.color.green;
@@ -1015,7 +1032,12 @@ Figure createSphere(const int n, Color kleur){
 
     std::vector<Face> new_faces;
     std::vector<Vector3D> new_points;
-
+    if(n == 0){
+        s_figure.points = i_points;
+        s_figure.faces = i_faces;
+        s_figure.color = kleur;
+        return s_figure;
+    }
     for(int i = 0; i < n; i++){
         std::vector<Face> temp_faces = i_faces;
         i_faces.clear();
@@ -1283,7 +1305,7 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
 
 
 
-    else if(configuration["General"]["type"].as_string_or_die() == "ZBufferedWireframe"){
+    else if(configuration["General"]["type"].as_string_or_die() == "Wireframe" || configuration["General"]["type"].as_string_or_die() == "ZBufferedWireframe"){
         Figures3D  figures;
         std::vector<double> eye_point = configuration["General"]["eye"].as_double_tuple_or_die();
         Vector3D v_point = Vector3D::point(eye_point[0], eye_point[1], eye_point[2]);
