@@ -1384,32 +1384,26 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
 
 
             Matrix scale_matrix = scaleFigure(configuration[fignum]["scale"].as_double_or_die());
-            applyTransformation(figuur, scale_matrix);
-
 
             double degreeX = configuration[fignum]["rotateX"].as_double_or_die();
             Matrix rotateX_matrix = rotateX(degreesToRadians(degreeX));
-            applyTransformation(figuur, rotateX_matrix);
 
             double degreeY = configuration[fignum]["rotateY"].as_double_or_die();
             Matrix rotateY_matrix = rotateY(degreesToRadians(degreeY));
-            applyTransformation(figuur, rotateY_matrix);
 
             double degreeZ = configuration[fignum]["rotateZ"].as_double_or_die();
             Matrix rotateZ_matrix = rotateZ(degreesToRadians(degreeZ));
-            applyTransformation(figuur, rotateZ_matrix);
 
             std::vector<double> cen_ter = configuration[fignum]["center"].as_double_tuple_or_die();
 
             Vector3D center_vector = Vector3D::vector(cen_ter[0], cen_ter[1], cen_ter[2]);
 
             Matrix translate_matrix = translate(center_vector);
-            applyTransformation(figuur, translate_matrix);
-
 
             Matrix eyePointTrans_matrix = eyePointTrans(v_point);
-            applyTransformation(figuur, eyePointTrans_matrix);
 
+            Matrix total_matrix = scale_matrix * rotateX_matrix * rotateY_matrix * rotateZ_matrix * translate_matrix * eyePointTrans_matrix;
+            applyTransformation(figuur, total_matrix);
 
             figures.push_back(figuur);
 
