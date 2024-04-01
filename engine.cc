@@ -231,7 +231,7 @@ void draw_zbuf_line(ZBuffer &buffer, img::EasyImage &image, unsigned int x0, uns
     }
 }
 
-img::EasyImage draw2DLines(const Lines2D &lines,const int size, const ini::Configuration &configuration){
+void Calculate(double& imageX, double& imageY, double& dx, double& dy, double& schaalfactor, const Lines2D &lines,const int size, const ini::Configuration &configuration){
     double xmin = lines.begin()->p1.x;
     double xmax = lines.begin()->p1.x;
     double ymin = lines.begin()->p1.y;
@@ -246,23 +246,78 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size, const ini::Confi
     double yrange = ymax - ymin;
 
 
-    double imageX = size * (xrange/ fmax(xrange,yrange));
-    double imageY = size * (yrange/ fmax(xrange,yrange));
+    imageX = size * (xrange/ fmax(xrange,yrange));
+    imageY = size * (yrange/ fmax(xrange,yrange));
 
 
-    double schaalfactor = 0.95 * (imageX/xrange);
+    schaalfactor = 0.95 * (imageX/xrange);
 
-
-    Lines2D newLines = lines;
-
-    mult_cords_with_SF(schaalfactor, newLines);
 
     double DCx = schaalfactor * ((xmin + xmax)/2);
     double DCy = schaalfactor * ((ymin + ymax)/2);
 
-    double dx = (imageX/2) - DCx;
-    double dy = (imageY/2) - DCy;
+    dx = (imageX/2) - DCx;
+    dy = (imageY/2) - DCy;
 
+
+}
+
+vector<Face> triangulate(const Face& face){
+    vector<Face> faces;
+
+    for(size_t i = 1 ; i <= face.point_indexes.size()-2 ; i++){
+        Face newFace;
+        newFace.point_indexes.push_back(face.point_indexes[0]);
+        newFace.point_indexes.push_back(face.point_indexes[i]);
+        newFace.point_indexes.push_back(face.point_indexes[i + 1]);
+
+        faces.push_back(newFace);
+
+    }
+    return faces;
+}
+
+img::EasyImage draw2DLines(const Lines2D &lines,const int size, const ini::Configuration &configuration){
+    double imageX;
+    double imageY;
+    double dx;
+    double dy;
+    double schaalfactor;
+    Lines2D newLines;
+
+    double xmin = lines.begin()->p1.x;
+    double xmax = lines.begin()->p1.x;
+    double ymin = lines.begin()->p1.y;
+    double ymax = lines.begin()->p1.y;
+    for(auto& line : lines){
+        getXmin(line, xmin);
+        getXmax(line, xmax);
+        getYmin(line, ymin);
+        getYmax(line, ymax);
+    }
+
+    double xrange = xmax - xmin;
+    double yrange = ymax - ymin;
+
+
+    imageX = size * (xrange/ fmax(xrange,yrange));
+    imageY = size * (yrange/ fmax(xrange,yrange));
+
+
+    schaalfactor = 0.95 * (imageX/xrange);
+
+
+    double DCx = schaalfactor * ((xmin + xmax)/2);
+    double DCy = schaalfactor * ((ymin + ymax)/2);
+
+    dx = (imageX/2) - DCx;
+    dy = (imageY/2) - DCy;
+
+
+
+    newLines = lines;
+
+    mult_cords_with_SF(schaalfactor, newLines);
 
 
     for(auto &line : newLines){
@@ -284,8 +339,10 @@ img::EasyImage draw2DLines(const Lines2D &lines,const int size, const ini::Confi
     img::EasyImage image(imageX, imageY);
     std::vector<double> bgcolor = configuration["General"]["backgroundcolor"];
     image.clear(img::Color(bgcolor[0]*255, bgcolor[1]*255, bgcolor[2]*255));
-
     ZBuffer buffer(imageX, imageY);
+
+
+
     for(auto &line : newLines){
         if(configuration["General"]["type"].as_string_or_die() == "ZBufferedWireframe"){
             draw_zbuf_line(buffer, image, line.p1.x, line.p1.y, line.z1, line.p2.x, line.p2.y , line.z2, img::Color((line.color.red)*255,(line.color.green)*255, (line.color.blue)*255));
@@ -1291,7 +1348,116 @@ Figure createTorus(const int n, const int m, const double R, const double r, Col
 }
 
 
+void CalculateConstantes(Vector3D const& A, Vector3D const& B, Vector3D const& C, double& dzdx, double& dzdy, double& d){
+    Vector3D vec_u = B - A;
+    Vector3D vec_v = C - A;
 
+    double w1 = vec_u.y*vec_v.z - vec_u.z*vec_v.y;
+    double w2 = vec_u.z*vec_v.x - vec_u.x*vec_v.y;
+    double w3 = vec_u.x*vec_v.y - vec_u.y*vec_v.x;
+
+    double k = w1*A.x + w2*A.y + w3*A.z;
+
+    dzdx = w1 / (-d*k);
+    dzdy = w2 / (-d*k);
+}
+
+
+void draw_zbuf_triag(ZBuffer& buffer , img::EasyImage& image, Vector3D const& A, Vector3D const& B, Vector3D const& C, double& d, double& dx, double& dy, const img::Color& color){
+    //Projected Points
+    Point2D A_project{};
+    A_project.x = (d*A.x/-A.z) + dx;
+    A_project.y = (d*A.y/-A.z) + dy;
+
+    Point2D B_project{};
+    B_project.x = (d*B.x/-B.z) + dx;
+    B_project.y = (d*B.y/-B.z) + dy;
+
+    Point2D C_project{};
+    C_project.x = (d*C.x/-C.z) + dx;
+    C_project.y = (d*C.y/-C.z) + dy;
+
+    int ymin = round(std::min({A_project.y, B_project.y, C_project.y}) + 0.5);
+    int ymax = round(std::max({A_project.y, B_project.y, C_project.y}) - 0.5);
+
+    vector<pair<Point2D, Point2D>> posible_snijpunten;
+    //Emplace will make a pair and put it in the vector
+    posible_snijpunten.emplace_back(A_project, B_project);
+    posible_snijpunten.emplace_back(A_project, C_project);
+    posible_snijpunten.emplace_back(B_project, C_project);
+
+
+
+
+    for(int yi = ymin ; yi< ymax; yi++){
+        int x_L;
+        int x_R;
+
+        //Initialize variables
+        double x_l_AB = std::numeric_limits<double>::infinity();
+        double x_l_AC = std::numeric_limits<double>::infinity();
+        double x_l_BC = std::numeric_limits<double>::infinity();
+
+        double x_r_AB = -std::numeric_limits<double>::infinity();
+        double x_r_AC = -std::numeric_limits<double>::infinity();
+        double x_r_BC = -std::numeric_limits<double>::infinity();
+
+        int count = 0;
+        for(auto& lijnstuk : posible_snijpunten){
+            double x_q = lijnstuk.second.x;
+            double x_p = lijnstuk.first.x;
+            double y_p = lijnstuk.first.y;
+            double y_q = lijnstuk.second.y;
+
+            if((yi-y_p)*(yi-y_q) <= 0 && y_p != y_q){
+                double x_i =x_q + (x_p - x_q) * ((yi - y_q)/ (y_p - y_q));
+                switch (count) {
+                    case 0: {
+                        x_l_AB = x_i;
+                        x_r_AB = x_i;
+                    }
+                        break;
+                    case 1: {
+                        x_l_AC = x_i;
+                        x_r_AC = x_i;
+                    }
+                        break;
+                    case 2: {
+                        x_l_BC = x_i;
+                        x_r_BC = x_i;
+                    }
+                        break;
+
+                }
+                count++;
+
+            }
+        }
+        x_L = lround(min(x_l_AB, min(x_l_AC, x_l_BC)) + 0.5);
+        x_R = lround(max(x_l_AB, min(x_l_AC, x_l_BC)) - 0.5);
+
+        double dzdx;
+        double dzdy;
+        CalculateConstantes(A,B,C, dzdx, dzdy, d);
+
+        double xG = (A_project.x + B_project.x + C_project.x) / 3;
+        double yG = (A_project.y + B_project.y + C_project.y) / 3;
+
+        double zbw_G = (1/3*A.z) + (1/3*B.z) + (1/3*C.z);
+
+        for(int i = x_L; i<x_R; i++){
+            double zb_w = (1.0001 * zbw_G) + (i - xG)*dzdx + (yi - yG)*dzdy;
+            if(zb_w < buffer.buffer[i][yi]){
+                buffer.buffer[i][yi] = zb_w;
+                (image)(i, yi) = color;
+            }
+
+        }
+
+
+
+    }
+}
 
 img::EasyImage generate_image(const ini::Configuration &configuration)
 {
@@ -1300,7 +1466,8 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
         LParser::LSystem2D l_system;
         std::ifstream input_stream(configuration["2DLSystem"]["inputfile"].as_string_or_die());
         input_stream >> l_system;
-        return draw2DLines(drawLSystem(l_system, configuration), configuration["General"]["size"].as_int_or_die(), configuration);
+        list<Line2D> line_s = drawLSystem(l_system, configuration);
+        return draw2DLines(line_s, configuration["General"]["size"].as_int_or_die(), configuration);
     }
 
 
@@ -1353,7 +1520,7 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
                 std::ifstream input_stream(configuration[fignum]["inputfile"].as_string_or_die());
                 input_stream >> l_system;
 
-               figuur = draw3DLSystem(l_system, configuration, fignum);
+                figuur = draw3DLSystem(l_system, configuration, fignum);
 
             }
 
@@ -1409,7 +1576,48 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
 
         }
 
-        return draw2DLines(doProjection(figures), configuration["General"]["size"].as_int_or_die(), configuration);
+        list<Line2D> line_s = doProjection(figures);
+        if(configuration["General"]["type"].as_string_or_die() == "ZBuffering"){
+            double imageX;
+            double imageY;
+            double dx;
+            double dy;
+            double schaalfactor;
+
+            Calculate(imageX, imageY, dx, dy, schaalfactor, line_s, configuration["General"]["size"].as_int_or_die(), configuration);
+
+            img::EasyImage image(imageX, imageY);
+            std::vector<double> bgcolor = configuration["General"]["backgroundcolor"];
+            image.clear(img::Color(bgcolor[0]*255, bgcolor[1]*255, bgcolor[2]*255));
+            ZBuffer buffer(imageX, imageY);
+
+
+            for(auto& fig : figures){
+                vector<Face> newFace;
+                for(auto&face : fig.faces){
+                    vector<Face> temp = triangulate(face);
+                    //cout<<temp.size()<<endl;
+                    newFace.insert(newFace.end(), temp.begin(), temp.end());
+                }
+                fig.faces = newFace;
+
+            }
+
+
+            for(auto& fig : figures){
+                for(auto&face : fig.faces){
+                    draw_zbuf_triag(buffer, image, fig.points[face.point_indexes[0]], fig.points[face.point_indexes[1]],fig.points[face.point_indexes[2]], schaalfactor, dx, dy, img::Color(fig.color.red*255, fig.color.green*255, fig.color.blue*255));
+                }
+            }
+            return image;
+
+        }
+        else{
+            return draw2DLines(line_s, configuration["General"]["size"].as_int_or_die(), configuration);
+        };
+
+
+
 
 
     }
@@ -1422,78 +1630,78 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
 
 int main(int argc, char const* argv[])
 {
-        int retVal = 0;
-        try
+    int retVal = 0;
+    try
+    {
+        std::vector<std::string> args = std::vector<std::string>(argv+1, argv+argc);
+        if (args.empty()) {
+            std::ifstream fileIn("filelist");
+            std::string filelistName;
+            while (std::getline(fileIn, filelistName)) {
+                args.push_back(filelistName);
+            }
+        }
+        for(std::string fileName : args)
         {
-                std::vector<std::string> args = std::vector<std::string>(argv+1, argv+argc);
-                if (args.empty()) {
-                        std::ifstream fileIn("filelist");
-                        std::string filelistName;
-                        while (std::getline(fileIn, filelistName)) {
-                                args.push_back(filelistName);
-                        }
+            ini::Configuration conf;
+            try
+            {
+                std::ifstream fin(fileName);
+                if (fin.peek() == std::istream::traits_type::eof()) {
+                    std::cout << "Ini file appears empty. Does '" <<
+                              fileName << "' exist?" << std::endl;
+                    continue;
                 }
-                for(std::string fileName : args)
+                fin >> conf;
+                fin.close();
+            }
+            catch(ini::ParseException& ex)
+            {
+                std::cerr << "Error parsing file: " << fileName << ": " << ex.what() << std::endl;
+                retVal = 1;
+                continue;
+            }
+
+            img::EasyImage image = generate_image(conf);
+            if(image.get_height() > 0 && image.get_width() > 0)
+            {
+                std::string::size_type pos = fileName.rfind('.');
+                if(pos == std::string::npos)
                 {
-                        ini::Configuration conf;
-                        try
-                        {
-                                std::ifstream fin(fileName);
-                                if (fin.peek() == std::istream::traits_type::eof()) {
-                                    std::cout << "Ini file appears empty. Does '" <<
-                                    fileName << "' exist?" << std::endl;
-                                    continue;
-                                }
-                                fin >> conf;
-                                fin.close();
-                        }
-                        catch(ini::ParseException& ex)
-                        {
-                                std::cerr << "Error parsing file: " << fileName << ": " << ex.what() << std::endl;
-                                retVal = 1;
-                                continue;
-                        }
-
-                        img::EasyImage image = generate_image(conf);
-                        if(image.get_height() > 0 && image.get_width() > 0)
-                        {
-                                std::string::size_type pos = fileName.rfind('.');
-                                if(pos == std::string::npos)
-                                {
-                                        //filename does not contain a '.' --> append a '.bmp' suffix
-                                        fileName += ".bmp";
-                                }
-                                else
-                                {
-                                        fileName = fileName.substr(0,pos) + ".bmp";
-                                }
-                                try
-                                {
-                                        std::ofstream f_out(fileName.c_str(),std::ios::trunc | std::ios::out | std::ios::binary);
-                                        f_out << image;
-
-                                }
-                                catch(std::exception& ex)
-                                {
-                                        std::cerr << "Failed to write image to file: " << ex.what() << std::endl;
-                                        retVal = 1;
-                                }
-                        }
-                        else
-                        {
-                                std::cout << "Could not generate image for " << fileName << std::endl;
-                        }
+                    //filename does not contain a '.' --> append a '.bmp' suffix
+                    fileName += ".bmp";
                 }
+                else
+                {
+                    fileName = fileName.substr(0,pos) + ".bmp";
+                }
+                try
+                {
+                    std::ofstream f_out(fileName.c_str(),std::ios::trunc | std::ios::out | std::ios::binary);
+                    f_out << image;
+
+                }
+                catch(std::exception& ex)
+                {
+                    std::cerr << "Failed to write image to file: " << ex.what() << std::endl;
+                    retVal = 1;
+                }
+            }
+            else
+            {
+                std::cout << "Could not generate image for " << fileName << std::endl;
+            }
         }
-        catch(const std::bad_alloc &exception)
-        {
-    		//When you run out of memory this exception is thrown. When this happens the return value of the program MUST be '100'.
-    		//Basically this return value tells our automated test scripts to run your engine on a pc with more memory.
-    		//(Unless of course you are already consuming the maximum allowed amount of memory)
-    		//If your engine does NOT adhere to this requirement you risk losing points because then our scripts will
-		//mark the test as failed while in reality it just needed a bit more memory
-                std::cerr << "Error: insufficient memory" << std::endl;
-                retVal = 100;
-        }
-        return retVal;
+    }
+    catch(const std::bad_alloc &exception)
+    {
+        //When you run out of memory this exception is thrown. When this happens the return value of the program MUST be '100'.
+        //Basically this return value tells our automated test scripts to run your engine on a pc with more memory.
+        //(Unless of course you are already consuming the maximum allowed amount of memory)
+        //If your engine does NOT adhere to this requirement you risk losing points because then our scripts will
+        //mark the test as failed while in reality it just needed a bit more memory
+        std::cerr << "Error: insufficient memory" << std::endl;
+        retVal = 100;
+    }
+    return retVal;
 }
