@@ -1387,9 +1387,16 @@ void draw_zbuf_triag(ZBuffer& buffer , img::EasyImage& image, Vector3D const& A,
     posible_snijpunten.emplace_back(B_project, C_project);
 
 
+    double dzdx;
+    double dzdy;
+    CalculateConstantes(A,B,C, dzdx, dzdy, d);
 
+    double xG = (A_project.x + B_project.x + C_project.x) / 3;
+    double yG = (A_project.y + B_project.y + C_project.y) / 3;
 
-    for(int yi = ymin ; yi< ymax; yi++){
+    double zbw_G = (1/3*A.z) + (1/3*B.z) + (1/3*C.z);
+
+    for(int yi = ymin ; yi<= ymax; yi++){
         int x_L;
         int x_R;
 
@@ -1436,16 +1443,9 @@ void draw_zbuf_triag(ZBuffer& buffer , img::EasyImage& image, Vector3D const& A,
         x_L = lround(min(x_l_AB, min(x_l_AC, x_l_BC)) + 0.5);
         x_R = lround(max(x_l_AB, min(x_l_AC, x_l_BC)) - 0.5);
 
-        double dzdx;
-        double dzdy;
-        CalculateConstantes(A,B,C, dzdx, dzdy, d);
 
-        double xG = (A_project.x + B_project.x + C_project.x) / 3;
-        double yG = (A_project.y + B_project.y + C_project.y) / 3;
 
-        double zbw_G = (1/3*A.z) + (1/3*B.z) + (1/3*C.z);
-
-        for(int i = x_L; i<x_R; i++){
+        for(int i = x_L; i<=x_R; i++){
             double zb_w = (1.0001 * zbw_G) + (i - xG)*dzdx + (yi - yG)*dzdy;
             if(zb_w < buffer.buffer[i][yi]){
                 buffer.buffer[i][yi] = zb_w;
