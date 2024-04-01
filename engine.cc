@@ -1353,7 +1353,7 @@ void CalculateConstantes(Vector3D const& A, Vector3D const& B, Vector3D const& C
     Vector3D vec_v = C - A;
 
     double w1 = vec_u.y*vec_v.z - vec_u.z*vec_v.y;
-    double w2 = vec_u.z*vec_v.x - vec_u.x*vec_v.y;
+    double w2 = vec_u.z*vec_v.x - vec_u.x*vec_v.z;
     double w3 = vec_u.x*vec_v.y - vec_u.y*vec_v.x;
 
     double k = w1*A.x + w2*A.y + w3*A.z;
@@ -1394,7 +1394,7 @@ void draw_zbuf_triag(ZBuffer& buffer , img::EasyImage& image, Vector3D const& A,
     double xG = (A_project.x + B_project.x + C_project.x) / 3;
     double yG = (A_project.y + B_project.y + C_project.y) / 3;
 
-    double zbw_G = (1/3*A.z) + (1/3*B.z) + (1/3*C.z);
+    double zbw_G = (1/(3*A.z)) + (1/(3*B.z)) + (1/(3*C.z));
 
     for(int yi = ymin ; yi<= ymax; yi++){
         int x_L;
@@ -1440,16 +1440,17 @@ void draw_zbuf_triag(ZBuffer& buffer , img::EasyImage& image, Vector3D const& A,
 
             }
         }
-        x_L = lround(min(x_l_AB, min(x_l_AC, x_l_BC)) + 0.5);
-        x_R = lround(max(x_l_AB, min(x_l_AC, x_l_BC)) - 0.5);
+        x_L = round(min({x_l_AB,x_l_AC, x_l_BC}) + 0.5);
+        x_R = round(max({x_r_AB, x_r_AC, x_r_BC}) - 0.5);
 
 
 
         for(int i = x_L; i<=x_R; i++){
             double zb_w = (1.0001 * zbw_G) + (i - xG)*dzdx + (yi - yG)*dzdy;
             if(zb_w < buffer.buffer[i][yi]){
-                buffer.buffer[i][yi] = zb_w;
                 (image)(i, yi) = color;
+                buffer.buffer[i][yi] = zb_w;
+
             }
 
         }
@@ -1596,7 +1597,6 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
                 vector<Face> newFace;
                 for(auto&face : fig.faces){
                     vector<Face> temp = triangulate(face);
-                    //cout<<temp.size()<<endl;
                     newFace.insert(newFace.end(), temp.begin(), temp.end());
                 }
                 fig.faces = newFace;
