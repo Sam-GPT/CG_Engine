@@ -1268,6 +1268,12 @@ Figure createCone(const int n, const double h, Color kleur){
     }
     faces.push_back(face_n);
 
+    Face bottomFace;
+    for(int i = 0; i < n; i++) {
+        bottomFace.point_indexes.push_back(i);
+    }
+    faces.push_back(bottomFace);
+
     c_figure.points = points;
     c_figure.faces = faces;
     c_figure.color = kleur;
@@ -1305,6 +1311,24 @@ Figure createCylinder(const int n, const double h, Color kleur){
         face2.point_indexes.push_back((2*i+2)%(2*n));
         faces.push_back(face2);
     }
+
+    Face topFace;
+    for(int i = n; i < 2*n; i++) {
+
+        topFace.point_indexes.push_back(i);
+
+
+    }
+    faces.push_back(topFace);
+
+    // Create bottom face
+    Face bottomFace;
+    for(int i = 0; i < 2*n; i++) {
+
+        bottomFace.point_indexes.push_back(i);
+
+    }
+    faces.push_back(bottomFace);
 
     c_figure.points = points;
     c_figure.faces = faces;
