@@ -1313,9 +1313,11 @@ Figure createCylinder(const int n, const double h, Color kleur){
     }
 
     Face topFace;
-    for(int i = n; i < 2*n; i++) {
+    for(int i = 0; i < 2*n; i++) {
+        if(i % 2 == 1){
+            topFace.point_indexes.push_back(i);
+        }
 
-        topFace.point_indexes.push_back(i);
 
 
     }
@@ -1324,8 +1326,10 @@ Figure createCylinder(const int n, const double h, Color kleur){
     // Create bottom face
     Face bottomFace;
     for(int i = 0; i < 2*n; i++) {
+        if(i % 2 == 0){
+            bottomFace.point_indexes.push_back(i);
+        }
 
-        bottomFace.point_indexes.push_back(i);
 
     }
     faces.push_back(bottomFace);
