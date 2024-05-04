@@ -1643,9 +1643,6 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
             else if(configuration[fignum]["type"].as_string_or_die() == "Torus"){
                 figuur = createTorus(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["m"].as_int_or_die(), configuration[fignum]["R"].as_double_or_die(), configuration[fignum]["r"].as_double_or_die(), figuur.color);
             }
-            else if(configuration[fignum]["type"].as_string_or_die() == "BuckyBall"){
-                figuur = createBuckyBall(figuur.color);
-            }
 
             else if(configuration[fignum]["type"].as_string_or_die() == "3DLSystem"){
                 LParser::LSystem3D l_system;
@@ -1686,12 +1683,6 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
                 fractal.push_back(fig);
                 generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
             }
-            else if(configuration[fignum]["type"].as_string_or_die() == "FractalBuckyBall"){
-                Figure fig = createBuckyBall(figuur.color);
-                fractal.push_back(fig);
-                generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
-            }
-
             else if(configuration[fignum]["type"].as_string_or_die() == "LineDrawing"){
                 for(int j =0; j< configuration[fignum]["nrLines"].as_int_or_die(); j++ ){
                     Face face{};
@@ -1716,7 +1707,7 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
                 }
             }
             else{
-                continue;
+                figuur = createCube(figuur.color);
             }
 
 
