@@ -136,6 +136,10 @@ void draw_zbuf_line(ZBuffer &buffer, img::EasyImage &image, unsigned int x0, uns
         unsigned int aantal_pixels = std::max(y0 ,y1) - std::min(y0, y1) + 1;
         unsigned int current_pixelNum = aantal_pixels;
 
+        if(y0 > y1){
+            std::swap(z0, z1);
+        }
+
         for (unsigned int i = std::min(y0, y1); i <= std::max(y0, y1); i++){
             double p = (double)current_pixelNum/aantal_pixels;
             double zb_waarde = (p/z0) + ((1-p)/z1);
@@ -155,6 +159,10 @@ void draw_zbuf_line(ZBuffer &buffer, img::EasyImage &image, unsigned int x0, uns
         //special case for y0 == y1
         unsigned int aantal_pixels = std::max(x0 ,x1) -std::min(x0, x1) + 1;
         unsigned int current_pixelNum = aantal_pixels;
+
+        if(x0 > x1){
+            std::swap(z0, z1);
+        }
 
         for (unsigned int i = std::min(x0, x1); i <= std::max(x0, x1); i++){
             double p = (double)current_pixelNum/aantal_pixels;
@@ -176,6 +184,7 @@ void draw_zbuf_line(ZBuffer &buffer, img::EasyImage &image, unsigned int x0, uns
             //flip points if x1>x0: we want x0 to have the lowest value
             std::swap(x0, x1);
             std::swap(y0, y1);
+            std::swap(z0, z1);
         }
         double m = ((double) y1 - (double) y0) / ((double) x1 - (double) x0);
         if (-1.0 <= m && m <= 1.0)
@@ -199,6 +208,8 @@ void draw_zbuf_line(ZBuffer &buffer, img::EasyImage &image, unsigned int x0, uns
         {
             unsigned int aantal_pixels = std::max(y1, y0) - std::min(y1, y0) + 1;
             unsigned int current_pixelNum = aantal_pixels;
+
+
             for (unsigned int i = 0; i <= (y1 - y0); i++)
             {
                 double p = (double)current_pixelNum/aantal_pixels;
@@ -216,6 +227,8 @@ void draw_zbuf_line(ZBuffer &buffer, img::EasyImage &image, unsigned int x0, uns
         {
             unsigned int aantal_pixels = std::max(y0, y1) - std::min(y0, y1) + 1;
             unsigned int current_pixelNum = aantal_pixels;
+
+
             for (unsigned int i = 0; i <= (y0 - y1); i++)
             {
                 double p = (double)current_pixelNum/aantal_pixels;
@@ -1375,6 +1388,53 @@ Figure createTorus(const int n, const int m, const double R, const double r, Col
 
 }
 
+Figure createBuckyBall(Color kleur) {
+    Figure b_figure;
+    std::vector<Vector3D> points;
+    std::vector<Face> faces;
+
+    // Creëer een icosahedron
+    Figure I_figure = createIcosahedron(kleur);
+    std::vector<Vector3D> I_points = I_figure.points;
+    std::vector<Face> I_faces = I_figure.faces;
+
+    // Voor elke driehoek van de icosahedron
+    for (const auto& face : I_faces) {
+        // Verdeel de driehoek in een gelijkzijdige zeshoek en drie driehoeken
+        // Voeg de punten van de zeshoek toe aan de lijst van punten
+        Vector3D center = (I_points[face.point_indexes[0]] + I_points[face.point_indexes[1]] + I_points[face.point_indexes[2]]) / 3.0;
+        points.push_back(center);
+        for (int i = 0; i < 3; ++i) {
+            Vector3D v1 = I_points[face.point_indexes[i]];
+            Vector3D v2 = I_points[face.point_indexes[(i + 1) % 3]];
+            points.push_back((v1 + v2) / 2.0);
+        }
+
+        // Voeg de piramide met vijf zijden toe aan de lijst van gezichten
+        Face pyramid_face;
+        for (int i = 0; i < 4; ++i) {
+            pyramid_face.point_indexes.push_back(points.size() - 4 + i);
+        }
+        faces.push_back(pyramid_face);
+    }
+
+    // Alleen het grondvlak van elke piramide behouden om de buckyball te construeren
+    for (const auto& face : faces) {
+        Face ground_face;
+        ground_face.point_indexes.push_back(face.point_indexes[0]);
+        ground_face.point_indexes.push_back(face.point_indexes[1]);
+        ground_face.point_indexes.push_back(face.point_indexes[2]);
+        faces.push_back(ground_face);
+    }
+
+    // Voeg de punten en gezichten toe aan de figuur
+    b_figure.points = points;
+    b_figure.faces = faces;
+    b_figure.color = kleur;
+
+    return b_figure;
+}
+
 
 void CalculateConstantes(Vector3D const& A, Vector3D const& B, Vector3D const& C, double& dzdx, double& dzdy, double& d){
     Vector3D vec_u = B - A;
@@ -1488,6 +1548,44 @@ void draw_zbuf_triag(ZBuffer& buffer , img::EasyImage& image, Vector3D const& A,
     }
 }
 
+
+
+void generateFractal(Figure& fig, Figures3D& fractal,const int nr_iterations, const double scale){
+
+    if(nr_iterations == 0){
+        return;
+    }
+
+    Matrix scala_matrix = scaleFigure(1/scale);
+
+    for(int j = 0; j < nr_iterations; j++){
+        Figures3D temp_fractal;
+        for(auto& _fig : fractal){
+            for(size_t i = 0; i < _fig.points.size(); i++){
+                Figure fig_copy = _fig;
+                applyTransformation(fig_copy, scala_matrix);
+
+                Vector3D Pi = _fig.points[i];
+                Vector3D Pi_acc = fig_copy.points[i];
+
+                Vector3D trans_vector = Pi - Pi_acc;
+                Matrix trans_matrix = translate(trans_vector);
+                applyTransformation(fig_copy, trans_matrix);
+
+                temp_fractal.push_back(fig_copy);
+            }
+
+
+        }
+        fractal.clear();
+        fractal.insert(fractal.end(), temp_fractal.begin(), temp_fractal.end());
+        temp_fractal.clear();
+    }
+
+
+
+}
+
 img::EasyImage generate_image(const ini::Configuration &configuration)
 {
 
@@ -1510,6 +1608,7 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
 
         for(int i = 0; i <configuration["General"]["nrFigures"].as_int_or_die(); i++ ){
             Figure figuur{};
+            Figures3D fractal;
             std::string fignum = "Figure"+ std::to_string(i);
             std::vector<double> clr = configuration[fignum]["color"].as_double_tuple_or_die();
             figuur.color.red = clr[0];
@@ -1544,6 +1643,10 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
             else if(configuration[fignum]["type"].as_string_or_die() == "Torus"){
                 figuur = createTorus(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["m"].as_int_or_die(), configuration[fignum]["R"].as_double_or_die(), configuration[fignum]["r"].as_double_or_die(), figuur.color);
             }
+            else if(configuration[fignum]["type"].as_string_or_die() == "BuckyBall"){
+                figuur = createBuckyBall(figuur.color);
+            }
+
             else if(configuration[fignum]["type"].as_string_or_die() == "3DLSystem"){
                 LParser::LSystem3D l_system;
                 std::ifstream input_stream(configuration[fignum]["inputfile"].as_string_or_die());
@@ -1552,8 +1655,44 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
                 figuur = draw3DLSystem(l_system, configuration, fignum);
 
             }
+            else if(configuration[fignum]["type"].as_string_or_die() == "FractalTetrahedron"){
+                Figure fig = createTetrahedron(figuur.color);
+                fractal.push_back(fig);
+                generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
 
-            if(configuration[fignum]["type"].as_string_or_die() == "LineDrawing"){
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "FractalIcosahedron"){
+                Figure fig = createIcosahedron(figuur.color);
+                fractal.push_back(fig);
+                generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "FractalOctahedron"){
+                Figure fig = creatOctahedron(figuur.color);
+                fractal.push_back(fig);
+                generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "FractalDodecahedron"){
+                Figure fig = creatDodecahedron(figuur.color);
+                fractal.push_back(fig);
+                generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "FractalSphere"){
+                Figure fig = createSphere(configuration[fignum]["n"].as_int_or_die(), figuur.color);
+                fractal.push_back(fig);
+                generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "FractalCube"){
+                Figure fig = createCube(figuur.color);
+                fractal.push_back(fig);
+                generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
+            }
+            else if(configuration[fignum]["type"].as_string_or_die() == "FractalBuckyBall"){
+                Figure fig = createBuckyBall(figuur.color);
+                fractal.push_back(fig);
+                generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
+            }
+
+            else if(configuration[fignum]["type"].as_string_or_die() == "LineDrawing"){
                 for(int j =0; j< configuration[fignum]["nrLines"].as_int_or_die(); j++ ){
                     Face face{};
                     std::string linenum = "line"+ std::to_string(j);
@@ -1575,6 +1714,9 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
                     figuur.points.push_back(point);
 
                 }
+            }
+            else{
+                continue;
             }
 
 
@@ -1602,6 +1744,12 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
             applyTransformation(figuur, total_matrix);
 
             figures.push_back(figuur);
+
+            for(auto& fig : fractal){
+                applyTransformation(fig, total_matrix);
+            }
+
+            figures.insert(figures.end(), fractal.begin(), fractal.end());
 
         }
 
