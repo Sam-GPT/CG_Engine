@@ -34,7 +34,7 @@ endif()
 
 # Set default install directory permissions.
 if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "C:/Program Files/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/objdump.exe")
+  set(CMAKE_OBJDUMP "C:/Program Files/JetBrains/CLion 2024.1.1/bin/mingw/bin/objdump.exe")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
@@ -50,9 +50,13 @@ if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT
   if(EXISTS "$ENV{DESTDIR}/C:/Users/USER/Downloads/utils/utils/engine.exe" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}/C:/Users/USER/Downloads/utils/utils/engine.exe")
     if(CMAKE_INSTALL_DO_STRIP)
-      execute_process(COMMAND "C:/Program Files/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/strip.exe" "$ENV{DESTDIR}/C:/Users/USER/Downloads/utils/utils/engine.exe")
+      execute_process(COMMAND "C:/Program Files/JetBrains/CLion 2024.1.1/bin/mingw/bin/strip.exe" "$ENV{DESTDIR}/C:/Users/USER/Downloads/utils/utils/engine.exe")
     endif()
   endif()
+endif()
+
+if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
+  include("C:/Users/USER/Downloads/utils/utils/cmake-build-debug/CMakeFiles/engine.dir/install-cxx-module-bmi-Debug.cmake" OPTIONAL)
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
