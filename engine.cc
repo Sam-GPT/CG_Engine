@@ -16,6 +16,7 @@
 #include <string>
 #include <sstream>
 #include "ZBuffer.h"
+#include "Light.h"
 #include <algorithm>
 #define PI 3.14159265358979323846
 
@@ -438,9 +439,9 @@ Lines2D drawLSystem(const LParser::LSystem2D &l_system , const ini::Configuratio
 Figure draw3DLSystem(const LParser::LSystem3D &l_system , const ini::Configuration &configuration, std::string& fignum){
     Figure figuur;
 
-    figuur.color.red = configuration[fignum]["color"].as_double_tuple_or_die()[0];
-    figuur.color.green = configuration[fignum]["color"].as_double_tuple_or_die()[1];
-    figuur.color.blue = configuration[fignum]["color"].as_double_tuple_or_die()[2];
+    figuur.ambientReflection.red = configuration[fignum]["color"].as_double_tuple_or_die()[0];
+    figuur.ambientReflection.green = configuration[fignum]["color"].as_double_tuple_or_die()[1];
+    figuur.ambientReflection.blue = configuration[fignum]["color"].as_double_tuple_or_die()[2];
 
     std::stack<std::vector<Vector3D>> myStack;
 
@@ -617,9 +618,9 @@ Lines2D doProjection(const Figures3D &figs) {
                 newline.z1 = fig.points[begin].z;
                 newline.z2 = fig.points[end].z;
 
-                newline.color.red = fig.color.red;
-                newline.color.green = fig.color.green;
-                newline.color.blue = fig.color.blue;
+                newline.color.red = fig.ambientReflection.red;
+                newline.color.green = fig.ambientReflection.green;
+                newline.color.blue = fig.ambientReflection.blue;
 
 
                 lines.push_back(newline);
@@ -636,9 +637,9 @@ Lines2D doProjection(const Figures3D &figs) {
             newline.z1 = fig.points[begin].z;
             newline.z2 = fig.points[end].z;
 
-            newline.color.red = fig.color.red;
-            newline.color.green = fig.color.green;
-            newline.color.blue = fig.color.blue;
+            newline.color.red = fig.ambientReflection.red;
+            newline.color.green = fig.ambientReflection.green;
+            newline.color.blue = fig.ambientReflection.blue;
 
 
             lines.push_back(newline);
@@ -728,7 +729,7 @@ Figure createTetrahedron(Color kleur){
 
     t_Figure.points = points;
     t_Figure.faces = faces;
-    t_Figure.color = kleur;
+    t_Figure.ambientReflection = kleur;
 
     return t_Figure;
 }
@@ -876,7 +877,7 @@ Figure createIcosahedron(Color kleur){
 
     I_figure.points = points;
     I_figure.faces = faces;
-    I_figure.color = kleur;
+    I_figure.ambientReflection = kleur;
 
     return I_figure;
 
@@ -952,7 +953,7 @@ Figure creatOctahedron(Color kleur){
 
     o_figure.points = points;
     o_figure.faces = faces;
-    o_figure.color = kleur;
+    o_figure.ambientReflection = kleur;
 
     return o_figure;
 }
@@ -1083,7 +1084,7 @@ Figure creatDodecahedron(Color kleur){
 
     d_figure.points = points;
     d_figure.faces = faces;
-    d_figure.color = kleur;
+    d_figure.ambientReflection = kleur;
 
     return d_figure;
 
@@ -1105,7 +1106,7 @@ Figure createSphere(const int n, Color kleur){
     if(n == 0){
         s_figure.points = i_points;
         s_figure.faces = i_faces;
-        s_figure.color = kleur;
+        s_figure.ambientReflection = kleur;
         return s_figure;
     }
     for(int i = 0; i < n; i++){
@@ -1172,7 +1173,7 @@ Figure createSphere(const int n, Color kleur){
     }
     s_figure.points = points;
     s_figure.faces = faces;
-    s_figure.color = kleur;
+    s_figure.ambientReflection = kleur;
 
     return s_figure;
 
@@ -1248,7 +1249,7 @@ Figure createCube(Color kleur){
 
     c_figure.points = points;
     c_figure.faces = faces;
-    c_figure.color = kleur;
+    c_figure.ambientReflection = kleur;
 
     return c_figure;
 
@@ -1289,7 +1290,7 @@ Figure createCone(const int n, const double h, Color kleur){
 
     c_figure.points = points;
     c_figure.faces = faces;
-    c_figure.color = kleur;
+    c_figure.ambientReflection = kleur;
 
     return c_figure;
 
@@ -1330,9 +1331,6 @@ Figure createCylinder(const int n, const double h, Color kleur){
         if(i % 2 == 1){
             topFace.point_indexes.push_back(i);
         }
-
-
-
     }
     faces.push_back(topFace);
 
@@ -1349,7 +1347,7 @@ Figure createCylinder(const int n, const double h, Color kleur){
 
     c_figure.points = points;
     c_figure.faces = faces;
-    c_figure.color = kleur;
+    c_figure.ambientReflection = kleur;
 
     return c_figure;
 
@@ -1380,7 +1378,7 @@ Figure createTorus(const int n, const int m, const double R, const double r, Col
 
     t_figure.points = points;
     t_figure.faces = faces;
-    t_figure.color = kleur;
+    t_figure.ambientReflection = kleur;
 
     return t_figure;
 
@@ -1430,7 +1428,7 @@ Figure createBuckyBall(Color kleur) {
     // Voeg de punten en gezichten toe aan de figuur
     b_figure.points = points;
     b_figure.faces = faces;
-    b_figure.color = kleur;
+    b_figure.ambientReflection = kleur;
 
     return b_figure;
 }
@@ -1451,7 +1449,7 @@ void CalculateConstantes(Vector3D const& A, Vector3D const& B, Vector3D const& C
 }
 
 
-void draw_zbuf_triag(ZBuffer& buffer , img::EasyImage& image, Vector3D const& A, Vector3D const& B, Vector3D const& C, double& d, double& dx, double& dy, const img::Color& color){
+void draw_zbuf_triag(ZBuffer& buffer , img::EasyImage& image, Vector3D const& A, Vector3D const& B, Vector3D const& C, double& d, double& dx, double& dy, Color& ambientReflectionn, Color& diffuseReflection, Color& specularReflection, double reflectionCoeff, Lights3D& lights, bool light){
     //Projected Points
     Point2D A_project{};
     A_project.x = (d*A.x/-A.z) + dx;
@@ -1532,11 +1530,46 @@ void draw_zbuf_triag(ZBuffer& buffer , img::EasyImage& image, Vector3D const& A,
         x_R = round(max({x_r_AB, x_r_AC, x_r_BC}) - 0.5);
 
 
+        Color color;
+        color.red = 0;
+        color.green = 0;
+        color.blue = 0;
+
+        if(light){
+            for(auto& light : lights){
+                color.red += ambientReflectionn.red * light.ambientLight.red;
+                color.green += ambientReflectionn.green * light.ambientLight.green;
+                color.blue += ambientReflectionn.blue * light.ambientLight.blue;
+
+            }
+
+            if(color.red > 1){
+                color.red = 1;
+            }
+            if(color.green > 1){
+                color.green = 1;
+            }
+            if(color.blue > 1){
+                color.blue = 1;
+            }
+        }
+        else{
+            color.red = ambientReflectionn.red;
+            color.green = ambientReflectionn.green;
+            color.blue = ambientReflectionn.blue;
+        }
+
+
+
+        color.red *= 255;
+        color.green *= 255;
+        color.blue *= 255;
+
 
         for(int i = x_L; i<=x_R; i++){
             double zb_w = (1.0001 * zbw_G) + (i - xG)*dzdx + (yi - yG)*dzdy;
             if(zb_w < buffer.buffer[i][yi]){
-                (image)(i, yi) = color;
+                (image)(i, yi) = img::Color(color.red, color.green, color.blue);
                 buffer.buffer[i][yi] = zb_w;
 
             }
@@ -1588,6 +1621,7 @@ void generateFractal(Figure& fig, Figures3D& fractal,const int nr_iterations, co
 
 img::EasyImage generate_image(const ini::Configuration &configuration)
 {
+    Color ambientReflection{};
 
     if(configuration["General"]["type"].as_string_or_die() == "2DLSystem"){
         LParser::LSystem2D l_system;
@@ -1599,7 +1633,7 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
 
 
 
-    else if(configuration["General"]["type"].as_string_or_die() == "Wireframe" || configuration["General"]["type"].as_string_or_die() == "ZBufferedWireframe"){
+    else if(configuration["General"]["type"].as_string_or_die() == "Wireframe" || configuration["General"]["type"].as_string_or_die() == "ZBufferedWireframe" || configuration["General"]["type"].as_string_or_die() == "ZBuffering" || configuration["General"]["type"].as_string_or_die() == "LightedZBuffering" ){
         Figures3D  figures;
         std::vector<double> eye_point = configuration["General"]["eye"].as_double_tuple_or_die();
         Vector3D v_point = Vector3D::point(eye_point[0], eye_point[1], eye_point[2]);
@@ -1609,39 +1643,48 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
         for(int i = 0; i <configuration["General"]["nrFigures"].as_int_or_die(); i++ ){
             Figure figuur{};
             Figures3D fractal;
+            std::vector<double> clr;
             std::string fignum = "Figure"+ std::to_string(i);
-            std::vector<double> clr = configuration[fignum]["color"].as_double_tuple_or_die();
-            figuur.color.red = clr[0];
-            figuur.color.green = clr[1];
-            figuur.color.blue = clr[2];
+            if(configuration["General"]["type"].as_string_or_die() == "LightedZBuffering"){
+                clr = configuration[fignum]["ambientReflection"].as_double_tuple_or_die();
+            }
+            else{
+                clr = configuration[fignum]["color"].as_double_tuple_or_die();
+            }
+
+            ambientReflection.red = clr[0];
+            ambientReflection.green = clr[1];
+            ambientReflection.blue = clr[2];
+
+            figuur.ambientReflection = ambientReflection;
 
 
             if(configuration[fignum]["type"].as_string_or_die() == "Tetrahedron"){
-                figuur = createTetrahedron(figuur.color);
+                figuur = createTetrahedron(ambientReflection);
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Icosahedron"){
-                figuur = createIcosahedron(figuur.color);
+                figuur = createIcosahedron(ambientReflection);
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Octahedron"){
-                figuur = creatOctahedron(figuur.color);
+                figuur = creatOctahedron(ambientReflection);
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Dodecahedron"){
-                figuur = creatDodecahedron(figuur.color);
+                figuur = creatDodecahedron(ambientReflection);
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Sphere"){
-                figuur = createSphere(configuration[fignum]["n"].as_int_or_die(), figuur.color);
+                figuur = createSphere(configuration[fignum]["n"].as_int_or_die(), ambientReflection);
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Cube"){
-                figuur = createCube(figuur.color);
+                figuur = createCube(ambientReflection);
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Cone"){
-                figuur = createCone(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["height"].as_double_or_die(), figuur.color);
+                figuur = createCone(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["height"].as_double_or_die(), ambientReflection);
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Cylinder"){
-                figuur = createCylinder(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["height"].as_double_or_die(), figuur.color);
+                figuur = createCylinder(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["height"].as_double_or_die(), ambientReflection);
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "Torus"){
-                figuur = createTorus(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["m"].as_int_or_die(), configuration[fignum]["R"].as_double_or_die(), configuration[fignum]["r"].as_double_or_die(), figuur.color);
+                figuur = createTorus(configuration[fignum]["n"].as_int_or_die(), configuration[fignum]["m"].as_int_or_die(), configuration[fignum]["R"].as_double_or_die(), configuration[fignum]["r"].as_double_or_die(), ambientReflection);
             }
 
             else if(configuration[fignum]["type"].as_string_or_die() == "3DLSystem"){
@@ -1653,33 +1696,33 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
 
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "FractalTetrahedron"){
-                Figure fig = createTetrahedron(figuur.color);
+                Figure fig = createTetrahedron(ambientReflection);
                 fractal.push_back(fig);
                 generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
 
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "FractalIcosahedron"){
-                Figure fig = createIcosahedron(figuur.color);
+                Figure fig = createIcosahedron(ambientReflection);
                 fractal.push_back(fig);
                 generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "FractalOctahedron"){
-                Figure fig = creatOctahedron(figuur.color);
+                Figure fig = creatOctahedron(ambientReflection);
                 fractal.push_back(fig);
                 generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "FractalDodecahedron"){
-                Figure fig = creatDodecahedron(figuur.color);
+                Figure fig = creatDodecahedron(ambientReflection);
                 fractal.push_back(fig);
                 generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "FractalSphere"){
-                Figure fig = createSphere(configuration[fignum]["n"].as_int_or_die(), figuur.color);
+                Figure fig = createSphere(configuration[fignum]["n"].as_int_or_die(), ambientReflection);
                 fractal.push_back(fig);
                 generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
             }
             else if(configuration[fignum]["type"].as_string_or_die() == "FractalCube"){
-                Figure fig = createCube(figuur.color);
+                Figure fig = createCube(ambientReflection);
                 fractal.push_back(fig);
                 generateFractal(fig, fractal, configuration[fignum]["nrIterations"].as_int_or_die(), configuration[fignum]["fractalScale"].as_double_or_die());
             }
@@ -1707,7 +1750,7 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
                 }
             }
             else{
-                figuur = createCube(figuur.color);
+                figuur = createCube(ambientReflection);
             }
 
 
@@ -1745,12 +1788,35 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
         }
 
         list<Line2D> line_s = doProjection(figures);
-        if(configuration["General"]["type"].as_string_or_die() == "ZBuffering"){
+        if(configuration["General"]["type"].as_string_or_die() == "ZBuffering" || configuration["General"]["type"].as_string_or_die() == "LightedZBuffering" ){
             double imageX;
             double imageY;
             double dx;
             double dy;
             double schaalfactor;
+
+            Lights3D lights3D;
+            if(configuration["General"]["type"].as_string_or_die() == "LightedZBuffering"){
+                for(int i = 0; i < configuration["General"]["nrLights"].as_int_or_die(); i++) {
+                    std::string lightnum = "Light" + std::to_string(i);
+                    Light newLight = Light();
+                    std::vector<double> ambient_vec = configuration[lightnum]["ambientLight"].as_double_tuple_or_die();
+                    newLight.ambientLight.red = ambient_vec[0];
+                    newLight.ambientLight.green = ambient_vec[1];
+                    newLight.ambientLight.blue = ambient_vec[2];
+
+                    lights3D.push_back(newLight);
+                }
+            }
+            else{
+                Light newLight = Light();
+                newLight.ambientLight.red = ambientReflection.red;
+                newLight.ambientLight.green = ambientReflection.green;
+                newLight.ambientLight.blue = ambientReflection.blue;
+                lights3D.push_back(newLight);
+            }
+
+
 
             Calculate(imageX, imageY, dx, dy, schaalfactor, line_s, configuration["General"]["size"].as_int_or_die(), configuration);
 
@@ -1760,20 +1826,29 @@ img::EasyImage generate_image(const ini::Configuration &configuration)
             ZBuffer buffer(imageX, imageY);
 
 
-            for(auto& fig : figures){
-                vector<Face> newFace;
-                for(auto&face : fig.faces){
-                    vector<Face> temp = triangulate(face);
-                    newFace.insert(newFace.end(), temp.begin(), temp.end());
-                }
-                fig.faces = newFace;
+            if(configuration["General"]["type"].as_string_or_die() != "Wireframe"){
+                for(auto& fig : figures){
+                    vector<Face> newFace;
+                    for(auto&face : fig.faces){
+                        vector<Face> temp = triangulate(face);
+                        newFace.insert(newFace.end(), temp.begin(), temp.end());
+                    }
+                    fig.faces = newFace;
 
+                }
             }
 
 
+
+
             for(auto& fig : figures){
                 for(auto&face : fig.faces){
-                    draw_zbuf_triag(buffer, image, fig.points[face.point_indexes[0]], fig.points[face.point_indexes[1]],fig.points[face.point_indexes[2]], schaalfactor, dx, dy, img::Color(fig.color.red*255, fig.color.green*255, fig.color.blue*255));
+                    if(configuration["General"]["type"].as_string_or_die() == "ZBuffering"){
+                        draw_zbuf_triag(buffer, image, fig.points[face.point_indexes[0]], fig.points[face.point_indexes[1]],fig.points[face.point_indexes[2]], schaalfactor, dx, dy, fig.ambientReflection, ambientReflection, ambientReflection, 0, lights3D,false);
+                    }
+                    else if(configuration["General"]["type"].as_string_or_die() == "LightedZBuffering"){
+                        draw_zbuf_triag(buffer, image, fig.points[face.point_indexes[0]], fig.points[face.point_indexes[1]],fig.points[face.point_indexes[2]], schaalfactor, dx, dy, fig.ambientReflection, ambientReflection, ambientReflection, 0, lights3D,true);
+                    }
                 }
             }
             return image;

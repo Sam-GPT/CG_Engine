@@ -15,7 +15,9 @@ class Figure {
 public:
     std::vector<Vector3D> points;
     std::vector<Face> faces ;
-    Color color;
+    Color ambientReflection;
+    Color diffuseReflection;
+    Color reflectionCoefficient;
 
 };
 typedef std::list<Figure>Figures3D;

@@ -31,6 +31,7 @@ set(engine_sources
 		vector3d.cc
         ZBuffer.h
 		ZBuffer.cpp
+		Light.cpp
 )
 
 ############################################################
